@@ -1,0 +1,164 @@
+---
+title: "Hypothesis Testing"
+subtitle: "(t-test)"
+abstract: "This is a presentation about Hypothesis Testing"
+keywords: "hypothesis testing, t-test, R"
+titlegraphic: images/itu2.eps
+titlegraphic-width: 0.15
+author:
+  - \href{mailto:sezenismail@gmail.com}{İ.SEZEN}
+  - \href{mailto:alper.unal@gmail.com}{A.ÜNAL}
+institute:
+  - Eurasia Institute of Earth Sciences
+institute-short: İTÜ
+date: \today
+fontsize: 10pt
+navigation: horizontal
+# header-includes:
+#   include-before:
+# include-after: \input{after_body.tex}
+section-titles: # Hide section title pages
+colorlinks: yes
+toc: yes
+toc-title: Summary
+toc-depth: 3
+justifying: yes
+output:
+  beamer_presentation:
+    template: default.beamer
+    keep_tex: yes
+    slide_level: 3
+    fig_caption: yes
+    theme: CambridgeUS
+    colortheme: euresia
+    highlight:
+    pandoc_args: ["--listings", "-H", "listings-setup.tex"]
+    # pandoc_args: ["--highlight-style", "my.theme"]
+    includes:
+      in_header: before_body.tex
+    #   after_body: after_body.tex
+    
+---
+
+```{r setup, include=FALSE}
+library(kableExtra)
+options(knitr.table.format = "latex")
+knitr::opts_chunk$set(echo = FALSE, background = '#FEF8DF')
+# a common hook for messages, warnings and errors
+optlist <- c("caption", "numbers", "basicstyle", "firstnumber", "style")
+hook <- function(x, options, ..., begin = "lstlisting") {
+  if (length(x) > 1) x <- paste(x, collapse = '\n')
+  opts <- options[optlist]
+  opts <- append(list(...), opts)
+  opts[sapply(opts, is.null)] <- NULL
+  opts <- ifelse(length(opts) < 1, "",
+                 sprintf("[%s]",paste0(names(opts), "=", opts, collapse = ",")))
+  knitr::raw_latex(
+    sprintf("\n\\begin{%s}%s\n%s\n\\end{%s}\n",begin, opts, x, begin))
+}
+hook_lst_bf = function(x, options) {
+  hook(x, options, basicstyle = "{\\bfseries}")
+}
+knitr::knit_hooks$set(source = function(x, options) {
+  if (length(x) > 1) x <- paste(x, collapse = '\n')
+  hook(x, options, begin = "rcode")
+}, output = function(x, options) {
+  if ("caption" %in% names(options)) options$caption = "\\mbox{}"
+  options$firstnumber = 1
+  x <- substr(x, 1, nchar(x) - 2)
+  if (substr(x, 1, 4) == paste(options$comment,"\n")) x <- substr(x, 5, nchar(x))
+  hook(x, options, begin = "outp")
+}, warning = hook_lst_bf, message = hook_lst_bf, error = hook_lst_bf)
+
+## empty highlight header since it is not useful any more
+knitr::set_header(highlight = "")
+```
+
+# \hypt
+## What is \hypt?
+### What is \hypt?
+
+\hyp\ is,
+
+- a supposition or proposed explanation made on the basis of limited evidence 
+  as a starting point for further investigation.
+- a testable statement about the relationship **between two or more variables**.
+- a proposed explanation for some observed phenomenon^[[1]]^.
+- an assumption about a population parameter. This assumption may or may not be 
+  true (For instance, a population mean is equal to $10$)^[[2]]^.
+
+[1]: https://whatis.techtarget.com/definition/hypothesis
+[2]: https://stattrek.com/statistics/dictionary.aspx?definition=statistical_hypothesis
+
+### What is \hypt?
+
+\hyp\ is,
+
+- a statistical method that is used in making statistical decisions using 
+  experimental data^[[3]]^.
+- basically an assumption that we make about the population parameter^[[3]]^.
+- is a method of [statistical inference](https://en.wikipedia.org/wiki/Statistical_inference)^[[4]]^.
+- The theory, methods, and practice of testing a \hyp\ by comparing it 
+  with the **\hn{}**.
+
+[3]: https://www.statisticssolutions.com/hypothesis-testing/
+[4]: https://en.wikipedia.org/wiki/Statistical_hypothesis_testing
+
+### Usage Cases
+
+- A _sample_ is compared against a population parameter.
+- Two statistical data sets are compared^[[3]]^.
+- a data set obtained by sampling is compared against a synthetic data set 
+  from an idealized model^[[3]]^.
+  
+### Steps of \hyp\ test
+
+1. Identify a _\ts{}_ that is appropriate to the data and question.
+2. Define a **\hn{}**, $H_{0}$.
+3. Define an **\ha{}**, $H_{A}$.
+4. Obtain the _null distribution_, which is simply the sampling distribution
+  for the test statistic, if the _\hn{}_ is _true_.
+5. Compare the observed _\ts{}_ to the _null distribution_.
+
+## Example #1 {.fragile}
+
+```{r code1, echo=TRUE, caption = "Hypothesis Testing"}
+# utility functions utility functions utility functions
+readinteger <- function(...) {
+  a <- data.frame(matrix(1:20, ncol = 12, nrow = 20))
+  ncol(a[,12:23])
+  z <- median(a)
+  x <- 2^35; integer(c(4321,3:56)) -> y; c <- NA
+  a <<- x == y & x != y & x <= y | x >= y || x < y && x > y
+  b <- !x + y - 1.5 * 12 / 0.3 %% 2 %/% 12 %*% 5 %in% a %o% x
+  s <- "^[0-9]+$?"
+  n <- !rnorm(x)
+  plot(x, y, type = "l")
+  if (length(n) == x) print(s)
+  warning("message warning")
+  stopifnot(1 == 1, all.equal(pi, 3.14159265), 1 < 2, 
+            LETTERS, month.abb, airquality) # all TRUE
+  return(as.integer(n))
+}
+```
+
+
+### Slide with Plot
+
+```{r pressure1}
+plot(pressure)
+```
+
+## Sub-Section 2
+### Frame Title 1
+justify This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+
+# Section 2
+## Sub-Section 1
+### Frame Title 1
+justify This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+

@@ -33,7 +33,7 @@ ttest <- function(x, mu = 0, conf.level = 0.95) {
 }
 
 conf.level = 0.95 # confidence level
-alpha <- (1 - conf.level)/2
+alpha <- 1 - conf.level
 mu <- 7.9
 # null hypo: mean is equal to mu [mu - mean(x) == 0] p-value < alpha
 # alternative hypo: mean is different than mu [mu - mean(x) != 0] p-value >= alpha
@@ -44,7 +44,7 @@ x <- rnorm(n, 10, 5) # we don't know mu and sd indeed.
 
 (se <- sd(x)/sqrt(length(x))) # Standard Error
 t <- (mean(x) - mu)/se
-ts <- qt(c(alpha, 1 - alpha), df)
+ts <- qt(c(alpha/2, 1 - alpha/2), df)
 (ci <- mean(x) + ts * se) # confidence interval
 
 if (t > ts[1] && t < ts[2]) {
@@ -81,7 +81,7 @@ ggplot(data = dat, mapping = aes(x, y)) +
 
 # if p-value smaller than significance (alpha = 0.05), reject the null hypo.
 # if p-value greater than significance, accept the null hypo.
-if (p_val > alpha * 2) {
+if (p_val > alpha) {
   cat("H0: Mean is equal to mu. (Fail to reject Ho)")
 } else {
   cat("H1: Mean is different than mu. (Reject Ho - do not ACCEPT H1)")

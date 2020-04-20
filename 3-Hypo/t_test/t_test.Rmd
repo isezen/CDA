@@ -1,0 +1,467 @@
+---
+title: "t-test"
+subtitle: ""
+abstract: "This is a presentation about t-test"
+keywords: "hypothesis testing, t-test, R"
+titlegraphic: images/itu2.eps
+titlegraphic-width: 0.15
+author:
+  - \href{mailto:sezenismail@gmail.com}{İ.SEZEN}
+  - \href{mailto:alper.unal@gmail.com}{A.ÜNAL}
+institute:
+  - Eurasia Institute of Earth Sciences
+institute-short: İTÜ
+date: \today
+fontsize: 10pt
+navigation: horizontal
+header-includes:
+  - \usepackage{ragged2e}
+  - \apptocmd{\frame}{}{\justifying}{}
+beamerconfig:
+    blocks: # default rounded, no shadow. Do not recommend shadows.
+      shadow:
+section-titles: # Hide section title pages
+colorlinks: yes
+toc: yes
+toc-title: Summary
+toc-depth: 3
+justifying: yes
+output:
+  beamer_presentation:
+    template: default.beamer
+    keep_tex: yes
+    slide_level: 3
+    fig_caption: yes
+    theme: CambridgeUS
+    colortheme: euresia
+    highlight: tango
+    pandoc_args: ["--listings", "-H", "listings-setup.tex"]
+    # pandoc_args: ["--highlight-style", "my.theme"]
+    includes:
+      in_header: before_body.tex
+      # after_body: after_body.tex
+    
+---
+
+```{r setup, include=FALSE}
+library(scales)
+library(latex2exp)
+library(ggplot2)
+library(ggrepel)
+library(kableExtra)
+global_theme <- ggthemes::theme_pander() +
+  theme(rect = element_rect(fill = "transparent"),
+        panel.background = element_rect(fill = "transparent"),
+        plot.background = element_rect(fill = "transparent", color = NA))
+theme_set(global_theme)
+options(knitr.table.format = "latex")
+knitr::opts_chunk$set(echo = TRUE, background = '#FEF8DF', 
+                      fig.align = "center", fig.width = 4,
+                      fig.height = 3, out.width = '50%')
+# a common hook for messages, warnings and errors
+optlist <- c("caption", "numbers", "basicstyle", "firstnumber", "style")
+hook <- function(x, options, ..., begin = "lstlisting") {
+  if (length(x) > 1) x <- paste(x, collapse = '\n')
+  opts <- options[optlist]
+  opts <- append(list(...), opts)
+  opts[sapply(opts, is.null)] <- NULL
+  opts <- ifelse(length(opts) < 1, "",
+                 sprintf("[%s]",paste0(names(opts), "=", opts, collapse = ",")))
+  knitr::raw_latex(
+    sprintf("\n\\begin{%s}%s\n%s\n\\end{%s}\n",begin, opts, x, begin))
+}
+hook_lst_bf = function(x, options) {
+  hook(x, options, basicstyle = "{\\bfseries}")
+}
+knitr::knit_hooks$set(source = function(x, options) {
+  if (length(x) > 1) x <- paste(x, collapse = '\n')
+  hook(x, options, begin = "rcode")
+}, output = function(x, options) {
+  if ("caption" %in% names(options)) options$caption = "\\mbox{}"
+  options$firstnumber = 1
+  x <- substr(x, 1, nchar(x) - 1)
+  if (substr(x, 1, 4) == paste(options$comment,"\n")) x <- substr(x, 5, nchar(x))
+  hook(x, options, begin = "outp")
+}, warning = hook_lst_bf, message = hook_lst_bf, error = hook_lst_bf)
+
+## empty highlight header since it is not useful any more
+knitr::set_header(highlight = "")
+```
+
+# t-test
+
+## One Sample t-test
+### Steps of t-test
+
+1. _\ts{}_ is mean. Compare sample mean ($\bar{x}$) against population mean ($\mu$).
+2. $H_0$: $\bar{x}$ is equal to $\mu$. ($\bar{x} = \mu$), ($\pval > \alpha$).
+3. $H_A$: $\bar{x}$ is different than $\mu$. ($\bar{x} \neq \mu$), ($\pval \le \alpha$)
+4. _null distribution_ is _student-t distribution_, which is simply the sampling distribution for the test statistic, if the $H_{0}$ is _true_.
+5. Compare the observed _\ts{}_ to the _null distribution_.
+
+### Confidence and Alpha Levels {.fragile}
+
+1. **Significance ($\boldsymbol\alpha$) level:** The probability of rejecting the $H_0$ when the null hypothesis is true.
+2. **Confidence Level:** The probability of confidence interval contains the true population mean ($\mu$). \textcolor{violet}{It is not the probability of which the $\mu$ lies within interval.}
+
+```{r mycode1, caption="t-test", firstnumber=1}
+alpha <- 0.05
+conf.level <- 1 - alpha
+```
+
+### When to use? {.fragile .allowframebreaks}
+
+You want to find out;
+
+1. if your observations come from a known normal distribution (which $\mu$ is known).
+2. if your observations are similar to the observations (which $\bar{y}$ is known) from a previous study.
+
+In both cases, you need to know $\mu$ or $mean(\bar{y})$ of previous observations.
+
+\begin{center}\rule{0.5\linewidth}{0.5000000000pt}\end{center}
+
+Assume that you know the mean age of female population;
+
+```{r}
+mu <- 33.2 # Mean age of female population
+```
+
+\newpage
+
+```{r, echo=FALSE}
+n <- 20
+```
+
+You _randomly_ asked $`r n`$ females their age and you get the results below;
+
+```{r mycode2, echo=FALSE, style="nonum"}
+df <- n - 1
+set.seed(3)
+x <- round(rnorm(n, 34, 15))
+mx <- mean(x)
+labels <- c(sprintf("$\\bar{x} = %.1f$", mx),
+            sprintf("$s = %.1f$", sd(x)),
+            sprintf("$df = %d - 1 = %d$", n, df),
+            "$\\mu$") 
+cat(paste(x, sep = "", collapse = ","))
+p1 <- ggplot(data.frame(x), aes(x = x)) + 
+  labs(x = "Age of females", y = "Density") +
+  geom_density() + xlim(c(0, 100)) +
+  geom_vline(xintercept = c(mean(x), mu), linetype = "dashed",
+             col = c("black", "red")) +
+  annotate("text", x = c(60, 60, 58.7, mu + 1), 
+           y = c(0.024, 0.0215, 0.019, 0.005), hjust = 0,
+           label = TeX(labels, output = "character"), parse = TRUE,
+           col = c("black", "black", "black", "red")) +
+  geom_rug()
+print(p1)
+```
+
+### Standard Error and t-value {.fragile .allowframebreaks}
+
+Are they coming from a normal distribution which $\mu = 33.2$?
+
+\begin{center}\rule{0.5\linewidth}{0.5000000000pt}\end{center}
+
+Let's calculate _Standard Error_ and _t-value_;
+
+```{r}
+n <- length(x)
+se <- sd(x)/sqrt(n)
+t <- (mean(x) - mu)/se # What's happening here?
+```
+```{r, echo = FALSE}
+cat(sprintf("SE = %.2f\tt = %.2f", se, t))
+```
+
+\begin{exampleblock}{Question}
+- Why $SE$ and $\sigma$ are different?
+
+- What is the meaning of $t$?
+\end{exampleblock}
+
+\newpage
+
+Null distribution here is student-t distribution with degrees of freedom $df = `r n - 1`$.
+
+```{r, echo=FALSE}
+y <- seq(-5, 5, 0.01)
+dat.st <- data.frame(x = y, y = dt(y, df))
+rx <- range(y)
+p2 <- ggplot(dat.st, aes(x, y)) + 
+  labs(x = "Quantiles", y = "Density") +
+  geom_line(col = "orange", size = 1) +
+  geom_vline(xintercept = c(0, t), linetype = "dashed", 
+             col = c("black", "violet")) +
+  annotate("text", x = 0.3, y = 0.05, 
+           label = TeX("$\\mu'$", output = "character"), 
+           parse = TRUE) +
+    annotate("text", x = 1.7, y = 0.2, label = "null distribution", 
+           col = "orange", angle = -76) +
+  annotate("text", x = t, y = 0.35, label = "t", hjust = 2,
+           col = "violet")
+print(p2)
+```
+
+\begin{alertblock}{Alert}
+student-t distribution is defined only by degrees of freedom ($\mu = 0$ and $\sigma = 1$).
+\end{alertblock}
+
+### Calculate Quantiles of $\alpha$ Level {.fragile}
+
+We will use _student-t distribution_ to calculate quantiles of $\alpha$ level at both tails.
+
+```{r}
+q <- qt(c(alpha/2, 1 - alpha/2), df)
+```
+
+Let's mark the quantiles of $\alpha$ level on the plot.
+
+\begin{center}
+$q_{\alpha} = `r round(abs(q[1]), 3)`$
+\end{center}
+
+```{r, echo = FALSE, out.width = '40%'}
+qlabels <- TeX(c("$-q_{\\alpha}$", "$q_{\\alpha}$"), 
+               output = "character")
+qdata <- data.frame(x = q, y = 0, xend = q, yend = dt(q, df))
+p3 <- p2 + 
+  geom_segment(aes(x, y, xend = xend, yend = yend), qdata,
+               col = "red", linetype = 3, inherit.aes = FALSE) +
+  geom_text(aes(x = x, y = y), qdata, label = qlabels,
+                  col = "red", parse = TRUE, vjust = 1) +
+    geom_ribbon(data = subset(dat.st, x >= rx[1] & x <= q[1]),
+              aes(ymax = y), ymin = 0, fill = "yellow", colour = NA,
+              alpha = 0.5) +
+  geom_ribbon(data = subset(dat.st, x >= q[2] & x <= rx[2]),
+              aes(ymax = y), ymin = 0, fill = "yellow", colour = NA,
+              alpha = 0.5)
+print(p3)
+```
+
+### Method-I (Decide tests result) {.fragile}
+
+You can use $t$ value and $q_{\alpha}$ values to decide the test result. 
+
+- If $-q_{\alpha} > t < q_{\alpha}$, **fail to reject** $H_0$.
+- If $-q_{\alpha} \le t \ge q_{\alpha}$, reject $H_0$.
+
+```{r, echo = FALSE}
+print(p3)
+```
+
+### Calculate Confidence Interval {.fragile .allowframebreaks}
+
+We know the quantiles of $\alpha$ level for _student-t distribution_, so we can transform the quantiles back to original values for $\bar{x}$. Hence;
+
+\begin{center}
+$CI = \bar{x} + (-q_{\alpha}, q_{\alpha}) \times SE$
+\end{center}
+
+```{r, echo = FALSE}
+(ci <- mean(x) + q * se)
+p4 <- p1 + geom_rect(xmin = ci[1], xmax = ci[2], ymin = -Inf, 
+                     ymax = Inf, alpha = 0.02, fill = "red")
+print(p4)
+```
+\newpage
+
+\begin{alertblock}{Question}
+How did we calculate the confidence interval? What did we use?
+\end{alertblock}
+
+\begin{center}
+$CI(\bar{x}, q_{\alpha}, SE)$, 
+$SE(s, n)$
+$q_{\alpha}(\alpha, df)$,
+$df(n)$
+
+$CI(\bar{x}, s, n, \alpha)$
+\end{center}
+
+1. If $\alpha \rightarrow 1$, $q_{\alpha} \rightarrow 0$, $CI \rightarrow \bar{x}$ (We want to keep $\alpha$ low).
+2. If $n \rightarrow \infty$, $SE \rightarrow 0$, $CI \rightarrow \bar{x}$ (Law of Large Numbers).
+3. If $s \rightarrow \infty$, $SE \rightarrow \infty$, $CI \rightarrow \infty$.
+4. If $\bar{x} \rightarrow \pm \infty$, $CI \rightarrow \pm \infty$ (Shifts the location).
+
+### Method-II (Decide tests result) {.fragile}
+
+You can use $\mu$ and confidence interval values to decide the test result. 
+
+- If $c_1 > \mu < c_2$, **fail to reject** $H_0$.
+- If $c_1 \le \mu \ge c_2$, reject $H_0$.
+
+```{r, echo = FALSE}
+print(p4)
+```
+
+### p-value {.fragile .allowframebreaks}
+
+$\pval$ is the \textcolor{violet}{probability which generates the data}, \textcolor{blue}{or something else which is equal} \textcolor{red}{or rarer}.
+
+$\pval$ is the probability of being $H_A$. 
+
+\begin{center}
+$t = `r round(t, 2)`$
+\end{center}
+
+```{r, echo = FALSE}
+p_val <- pt(-abs(t), df)
+p5 <- p2 + geom_vline(xintercept = -t, linetype = "dashed", 
+                      col = "blue") +
+  annotate("text", x = -t, y = 0.35, label = c("-t"), 
+           hjust = -0.5, col = c("blue")) +
+  geom_ribbon(data = subset(dat.st, x >= rx[1] & x <= -abs(t)),
+              aes(ymax = y), ymin = 0, fill = "red", colour = NA,
+              alpha = 0.5) +
+  geom_ribbon(data = subset(dat.st, x >= abs(t) & x <= rx[2]),
+              aes(ymax = y), ymin = 0, fill = "red", colour = NA,
+              alpha = 0.5)
+print(p5)
+```
+
+\newpage
+
+```{r}
+p_value <- 2 * pt(-abs(t), df)
+```
+\begin{center}
+$\pval = p_1 + p_2 = `r sprintf("%.3f + %.3f = %.3f", p_val, p_val, p_value)`$
+\end{center}
+
+```{r, echo = FALSE}
+p6 <- p5 +
+  annotate("segment", x = c(-3.5, 3.5), y = 0.1, 
+             xend = c(-1.5, 1.5), yend = 0.05,
+             arrow = arrow(angle = 20, length = unit(2, "mm"), 
+                           type = "closed"), col = "brown") +
+    annotate("label", x = c(-3.5, 3.5), y = 0.1,
+           label = TeX(sprintf("$p_%d = %.3f$", 1:2, p_val),
+                       output = "character"), parse = TRUE, col = "brown")
+print(p6)
+```
+
+### Method-III (Decide tests result) {.fragile}
+
+You can use $\pval$ to decide the test result. 
+
+- If $\pval > \alpha$, **fail to reject** $H_0$.
+- If $\pval \le \alpha$, reject $H_0$.
+
+\begin{center}\rule{0.5\linewidth}{0.5000000000pt}\end{center}
+
+As we **failed to reject** $H_0$ by three methods, we can conclude that our observations ($\bar{x}=`r round(mean(x), 2)`$) come from a normal distribution which $\mu = `r mu`$ with $`r 100 * conf.level`\%$ confidence. The means are not significantly different. Also, confidence interval is $CI = (`r sprintf("%.2f", ci)`)$.
+
+## t-test function
+
+### t.test 'equality' for mean {.fragile}
+
+The steps above can be easly done by `t.test` funcion in R.
+
+\begin{center}
+$`r sprintf("t = %.3f, df = %d, \\pval = %.3f", t, df, p_value)`$
+
+$CI = (`r sprintf("%.2f", ci)`)$
+\end{center}
+
+```{r}
+t.test(x, mu = mu, conf.level = conf.level)
+```
+
+### t.test 'less than' for mean {.fragile}
+
+1. $H_{0}$: $\bar{x}$ is equal or greater than $\mu$. ($\bar{x} \ge \mu$), ($\pval > \alpha$).
+2. $H_{A}$: $\bar{x}$ is less than $\mu$. ($\bar{x} > \mu$), ($\pval \le \alpha$)
+
+```{r}
+t.test(x, alternative = "less", mu = mu, conf.level = conf.level)
+```
+
+### t.test 'greater than' for mean {.fragile}
+
+1. $H_{0}$: $\bar{x}$ is equal or less than $\mu$. ($\bar{x} \le \mu$), ($\pval > \alpha$).
+2. $H_{A}$: $\bar{x}$ is greater than $\mu$. ($\bar{x} > \mu$), ($\pval \le \alpha$)
+
+```{r}
+t.test(x, alternative = "greater", mu = mu, conf.level = conf.level)
+```
+
+## Which \ha{} should I use?
+### Which \ha{} should I use?{.fragile}
+
+\begin{exampleblock}{Question}
+
+Which does it make sense? 
+
+\begin{itemize}
+\item Equality
+\item Less
+\item Greater
+\end{itemize}
+
+\end{exampleblock}
+
+## Another t-test Example
+
+### Another t-test Example {.fragile .allowframebreaks}
+
+What if $\mu = 37$? Be aware confidence interval.
+
+- $H_{0}$: $\bar{x}$ is equal to $\mu$. ($\bar{x} = \mu$), ($\pval > \alpha$).
+- $H_{A}$: $\bar{x}$ is not equal to $\mu$. ($\bar{x} \ne \mu$), ($\pval \le \alpha$)
+
+```{r}
+t.test(x, mu = 37, conf.level = conf.level)
+```
+
+\newpage
+
+1. $H_{0}$: $\bar{x}$ is equal or greater than $\mu$. ($\bar{x} \ge \mu$), ($\pval > \alpha$).
+2. $H_{A}$: $\bar{x}$ is less than $\mu$. ($\bar{x} > \mu$), ($\pval \le \alpha$)
+
+```{r}
+t.test(x, alternative = "less", mu = 37, conf.level = conf.level)
+```
+
+\newpage
+
+1. $H_{0}$: $\bar{x}$ is equal or less than $\mu$. ($\bar{x} \le \mu$), ($\pval > \alpha$).
+2. $H_{A}$: $\bar{x}$ is greater than $\mu$. ($\bar{x} > \mu$), ($\pval \le \alpha$)
+
+```{r}
+t.test(x, alternative = "greater", mu = 37, conf.level = conf.level)
+```
+
+## Meaning of p-value
+
+### What is the exact meaning of p-value? {.fragile .allowframebreaks}
+
+Even if $H_0$ is \textcolor{red}{$true$}, there is still $5\%$ chance to reject $H_0$.
+```{r}
+try <- 1000
+pvals <- sapply(1:try, function(i) {
+  set.seed(i)
+  t.test(rnorm(n))$p.value
+})
+per_of_type1 <- 100 * sum(pvals < 0.05)/try
+```
+
+```{r, echo = FALSE, fig.height = 1.5}
+cat(sprintf("Percent of Type I Error : %1.f%%", per_of_type1))
+breaks <- seq(0, 1, 0.05)
+a <- c(1, rep(NA, length(breaks) - 2))
+per <- function(x) {
+  c(percent(x[1]/length(pvals)), rep("", length(x) - 1))
+}
+ggplot(data.frame(x = pvals), aes(x)) +
+  geom_histogram(breaks = breaks, col = "black", 
+                 fill = c("red", rep(NA, length(breaks) - 2)), alpha = 0.5) +
+  stat_bin(breaks = breaks, aes(label = per(..count..)), 
+           vjust = -0.5, geom = "text", na.rm = TRUE) +
+  labs(x = "p-values")
+
+# power.t.test(n, mu - mean(x), sd(x), alpha, type = "one.sample")
+```
+
+\newpage
+
