@@ -1,9 +1,9 @@
 ---
 title: "t-test"
-subtitle: ""
+subtitle: "One Sample t-test"
 abstract: "This is a presentation about t-test"
 keywords: "hypothesis testing, t-test, R"
-titlegraphic: images/itu2.eps
+titlegraphic: "../../images/itu2.eps"
 titlegraphic-width: 0.15
 author:
   - \href{mailto:sezenismail@gmail.com}{İ.SEZEN}
@@ -22,7 +22,7 @@ beamerconfig:
       shadow:
 section-titles: # Hide section title pages
 colorlinks: yes
-toc: yes
+toc: false
 toc-title: Summary
 toc-depth: 3
 justifying: yes
@@ -49,6 +49,8 @@ library(latex2exp)
 library(ggplot2)
 library(ggrepel)
 library(kableExtra)
+n <- 20
+df <- n - 1
 global_theme <- ggthemes::theme_pander() +
   theme(rect = element_rect(fill = "transparent"),
         panel.background = element_rect(fill = "transparent"),
@@ -88,10 +90,10 @@ knitr::knit_hooks$set(source = function(x, options) {
 knitr::set_header(highlight = "")
 ```
 
-# t-test
+# Basics
 
-## One Sample t-test
-### Steps of t-test
+## Set up \hypt{}
+### Five Steps
 
 1. _\ts{}_ is mean. Compare sample mean ($\bar{x}$) against population mean ($\mu$).
 2. $H_0$: $\bar{x}$ is equal to $\mu$. ($\bar{x} = \mu$), ($\pval > \alpha$).
@@ -99,17 +101,20 @@ knitr::set_header(highlight = "")
 4. _null distribution_ is _student-t distribution_, which is simply the sampling distribution for the test statistic, if the $H_{0}$ is _true_.
 5. Compare the observed _\ts{}_ to the _null distribution_.
 
-### Confidence and Alpha Levels {.fragile}
+## $\alpha$ and Confidence Levels
+### $\alpha$ and Confidence Levels {.fragile}
 
 1. **Significance ($\boldsymbol\alpha$) level:** The probability of rejecting the $H_0$ when the null hypothesis is true.
 2. **Confidence Level:** The probability of confidence interval contains the true population mean ($\mu$). \textcolor{violet}{It is not the probability of which the $\mu$ lies within interval.}
 
-```{r mycode1, caption="t-test", firstnumber=1}
-alpha <- 0.05
-conf.level <- 1 - alpha
-```
+\begin{center}
+$\alpha = 0.05$
 
-### When to use? {.fragile .allowframebreaks}
+$conf.level = 1- \alpha$
+\end{center}
+
+## When to use?
+### When to use?
 
 You want to find out;
 
@@ -118,32 +123,37 @@ You want to find out;
 
 In both cases, you need to know $\mu$ or $mean(\bar{y})$ of previous observations.
 
-\begin{center}\rule{0.5\linewidth}{0.5000000000pt}\end{center}
+# Define Question
+### Define Question {.fragile}
 
-Assume that you know the mean age of female population;
+Assume that you know the mean age of a female population;
 
 ```{r}
 mu <- 33.2 # Mean age of female population
 ```
 
-\newpage
+You _randomly_ asked $`r n`$ females for their age and you get the answers below;
 
-```{r, echo=FALSE}
-n <- 20
-```
-
-You _randomly_ asked $`r n`$ females their age and you get the results below;
-
-```{r mycode2, echo=FALSE, style="nonum"}
-df <- n - 1
+```{r, echo=FALSE, style="nonum"}
 set.seed(3)
 x <- round(rnorm(n, 34, 15))
 mx <- mean(x)
+cat(paste0("x <- c(",  paste(x, sep = "", collapse = ","), ")"))
+```
+
+\rulee
+
+\begin{alertblock}{Question}
+Are they from a normal distribution which $\mu = 33.2$?
+\end{alertblock}
+
+### Kernel Density plot
+
+```{r, echo=FALSE,out.width = '60%'}
 labels <- c(sprintf("$\\bar{x} = %.1f$", mx),
             sprintf("$s = %.1f$", sd(x)),
             sprintf("$df = %d - 1 = %d$", n, df),
-            "$\\mu$") 
-cat(paste(x, sep = "", collapse = ","))
+            "$\\mu$")
 p1 <- ggplot(data.frame(x), aes(x = x)) + 
   labs(x = "Age of females", y = "Density") +
   geom_density() + xlim(c(0, 100)) +
@@ -157,13 +167,23 @@ p1 <- ggplot(data.frame(x), aes(x = x)) +
 print(p1)
 ```
 
-### Standard Error and t-value {.fragile .allowframebreaks}
+Don't we have any female older than 75?
 
-Are they coming from a normal distribution which $\mu = 33.2$?
+# How to Solve?
+## Define $\alevel$
+### Define $\alevel$ {.fragile}
 
-\begin{center}\rule{0.5\linewidth}{0.5000000000pt}\end{center}
+First, you need to define $\alevel$;
 
-Let's calculate _Standard Error_ and _t-value_;
+```{r}
+alpha <- 0.05
+conf.level <- 1 - alpha
+```
+
+## Calculate SE and t-value
+### Calculate SE and t-value {.fragile}
+
+Calculate _Standard Error_ and $\tval$;
 
 ```{r}
 n <- length(x)
@@ -180,9 +200,9 @@ cat(sprintf("SE = %.2f\tt = %.2f", se, t))
 - What is the meaning of $t$?
 \end{exampleblock}
 
-\newpage
+### student-t distribution {.fragile}
 
-Null distribution here is student-t distribution with degrees of freedom $df = `r n - 1`$.
+Null distribution is _student-t distribution_ with degrees of freedom $df = `r df`$.
 
 ```{r, echo=FALSE}
 y <- seq(-5, 5, 0.01)
@@ -207,15 +227,17 @@ print(p2)
 student-t distribution is defined only by degrees of freedom ($\mu = 0$ and $\sigma = 1$).
 \end{alertblock}
 
-### Calculate Quantiles of $\alpha$ Level {.fragile}
+# Solution by Quantiles of $\alevel$
+## Calculate Quantiles of $\alevel$
+### Calculate Quantiles of $\alevel$ {.fragile}
 
-We will use _student-t distribution_ to calculate quantiles of $\alpha$ level at both tails.
+We will use _student-t distribution_ to calculate quantiles of $\alevel$ at both tails.
 
 ```{r}
 q <- qt(c(alpha/2, 1 - alpha/2), df)
 ```
 
-Let's mark the quantiles of $\alpha$ level on the plot.
+Mark the quantiles of $\alevel$ on the plot.
 
 \begin{center}
 $q_{\alpha} = `r round(abs(q[1]), 3)`$
@@ -239,7 +261,8 @@ p3 <- p2 +
 print(p3)
 ```
 
-### Method-I (Decide tests result) {.fragile}
+## Decide test result
+### Method-I (Decide test result)
 
 You can use $t$ value and $q_{\alpha}$ values to decide the test result. 
 
@@ -250,9 +273,11 @@ You can use $t$ value and $q_{\alpha}$ values to decide the test result.
 print(p3)
 ```
 
-### Calculate Confidence Interval {.fragile .allowframebreaks}
+# Solution by Confidence Interval
+## Calculate Confidence Interval
+### Calculate Confidence Interval {.fragile}
 
-We know the quantiles of $\alpha$ level for _student-t distribution_, so we can transform the quantiles back to original values for $\bar{x}$. Hence;
+We know the quantiles of $\alevel$ for _student-t distribution_, so we can transform the quantiles back to original values for $\bar{x}$. Hence;
 
 \begin{center}
 $CI = \bar{x} + (-q_{\alpha}, q_{\alpha}) \times SE$
@@ -264,11 +289,14 @@ p4 <- p1 + geom_rect(xmin = ci[1], xmax = ci[2], ymin = -Inf,
                      ymax = Inf, alpha = 0.02, fill = "red")
 print(p4)
 ```
-\newpage
+
+### Deep look into Confidence Interval
 
 \begin{alertblock}{Question}
 How did we calculate the confidence interval? What did we use?
 \end{alertblock}
+
+\rulee
 
 \begin{center}
 $CI(\bar{x}, q_{\alpha}, SE)$, 
@@ -284,7 +312,8 @@ $CI(\bar{x}, s, n, \alpha)$
 3. If $s \rightarrow \infty$, $SE \rightarrow \infty$, $CI \rightarrow \infty$.
 4. If $\bar{x} \rightarrow \pm \infty$, $CI \rightarrow \pm \infty$ (Shifts the location).
 
-### Method-II (Decide tests result) {.fragile}
+## Decide test result
+### Method-II (Decide test result) {.fragile}
 
 You can use $\mu$ and confidence interval values to decide the test result. 
 
@@ -295,11 +324,11 @@ You can use $\mu$ and confidence interval values to decide the test result.
 print(p4)
 ```
 
-### p-value {.fragile .allowframebreaks}
+# Solution by $\pval$
+## $\pval$
+### What is $\pval$ {.fragile}
 
 $\pval$ is the \textcolor{violet}{probability which generates the data}, \textcolor{blue}{or something else which is equal} \textcolor{red}{or rarer}.
-
-$\pval$ is the probability of being $H_A$. 
 
 \begin{center}
 $t = `r round(t, 2)`$
@@ -320,7 +349,7 @@ p5 <- p2 + geom_vline(xintercept = -t, linetype = "dashed",
 print(p5)
 ```
 
-\newpage
+### How to calculate $\pval$ in R? {.fragile}
 
 ```{r}
 p_value <- 2 * pt(-abs(t), df)
@@ -340,8 +369,10 @@ p6 <- p5 +
                        output = "character"), parse = TRUE, col = "brown")
 print(p6)
 ```
+How to calculate $\pval$ for normal distribution?
 
-### Method-III (Decide tests result) {.fragile}
+## Decide test result
+### Method-III (Decide test result) {.fragile}
 
 You can use $\pval$ to decide the test result. 
 
@@ -352,9 +383,8 @@ You can use $\pval$ to decide the test result.
 
 As we **failed to reject** $H_0$ by three methods, we can conclude that our observations ($\bar{x}=`r round(mean(x), 2)`$) come from a normal distribution which $\mu = `r mu`$ with $`r 100 * conf.level`\%$ confidence. The means are not significantly different. Also, confidence interval is $CI = (`r sprintf("%.2f", ci)`)$.
 
-## t-test function
-
-### t.test 'equality' for mean {.fragile}
+# t-test function in R
+## Use t-test for \hypt
 
 The steps above can be easly done by `t.test` funcion in R.
 
@@ -364,20 +394,25 @@ $`r sprintf("t = %.3f, df = %d, \\pval = %.3f", t, df, p_value)`$
 $CI = (`r sprintf("%.2f", ci)`)$
 \end{center}
 
+### _Equality_ for mean (two-tail) {.fragile}
+
+1. $H_{0}$: $\bar{x}$ is equal to $\mu$. ($\bar{x} = \mu$), ($\pval > \alpha$).
+2. $H_{A}$: $\bar{x}$ is not equal to $\mu$. ($\bar{x} \ne \mu$), ($\pval \le \alpha$)
+
 ```{r}
 t.test(x, mu = mu, conf.level = conf.level)
 ```
 
-### t.test 'less than' for mean {.fragile}
+### _Less than_ for mean (right-tail) {.fragile}
 
 1. $H_{0}$: $\bar{x}$ is equal or greater than $\mu$. ($\bar{x} \ge \mu$), ($\pval > \alpha$).
-2. $H_{A}$: $\bar{x}$ is less than $\mu$. ($\bar{x} > \mu$), ($\pval \le \alpha$)
+2. $H_{A}$: $\bar{x}$ is less than $\mu$. ($\bar{x} < \mu$), ($\pval \le \alpha$)
 
 ```{r}
 t.test(x, alternative = "less", mu = mu, conf.level = conf.level)
 ```
 
-### t.test 'greater than' for mean {.fragile}
+### _Greater than_ for mean (left-tail) {.fragile}
 
 1. $H_{0}$: $\bar{x}$ is equal or less than $\mu$. ($\bar{x} \le \mu$), ($\pval > \alpha$).
 2. $H_{A}$: $\bar{x}$ is greater than $\mu$. ($\bar{x} > \mu$), ($\pval \le \alpha$)
@@ -386,8 +421,8 @@ t.test(x, alternative = "less", mu = mu, conf.level = conf.level)
 t.test(x, alternative = "greater", mu = mu, conf.level = conf.level)
 ```
 
-## Which \ha{} should I use?
-### Which \ha{} should I use?{.fragile}
+## One-Tail or Two Tail?
+### Which one should I use?{.fragile}
 
 \begin{exampleblock}{Question}
 
@@ -401,29 +436,29 @@ Which does it make sense?
 
 \end{exampleblock}
 
+# What if \hn{} is false?
 ## Another t-test Example
-
-### Another t-test Example {.fragile .allowframebreaks}
+### _Equality_ for mean (two-tail) {.fragile}
 
 What if $\mu = 37$? Be aware confidence interval.
 
-- $H_{0}$: $\bar{x}$ is equal to $\mu$. ($\bar{x} = \mu$), ($\pval > \alpha$).
-- $H_{A}$: $\bar{x}$ is not equal to $\mu$. ($\bar{x} \ne \mu$), ($\pval \le \alpha$)
+1. $H_{0}$: $\bar{x}$ is equal to $\mu$. ($\bar{x} = \mu$), ($\pval > \alpha$).
+2. $H_{A}$: $\bar{x}$ is not equal to $\mu$. ($\bar{x} \ne \mu$), ($\pval \le \alpha$)
 
 ```{r}
 t.test(x, mu = 37, conf.level = conf.level)
 ```
 
-\newpage
+### _Less than_ for mean (right-tail) {.fragile}
 
 1. $H_{0}$: $\bar{x}$ is equal or greater than $\mu$. ($\bar{x} \ge \mu$), ($\pval > \alpha$).
-2. $H_{A}$: $\bar{x}$ is less than $\mu$. ($\bar{x} > \mu$), ($\pval \le \alpha$)
+2. $H_{A}$: $\bar{x}$ is less than $\mu$. ($\bar{x} < \mu$), ($\pval \le \alpha$)
 
 ```{r}
 t.test(x, alternative = "less", mu = 37, conf.level = conf.level)
 ```
 
-\newpage
+### _Greater than_ for mean (left-tail) {.fragile}
 
 1. $H_{0}$: $\bar{x}$ is equal or less than $\mu$. ($\bar{x} \le \mu$), ($\pval > \alpha$).
 2. $H_{A}$: $\bar{x}$ is greater than $\mu$. ($\bar{x} > \mu$), ($\pval \le \alpha$)
@@ -432,9 +467,8 @@ t.test(x, alternative = "less", mu = 37, conf.level = conf.level)
 t.test(x, alternative = "greater", mu = 37, conf.level = conf.level)
 ```
 
-## Meaning of p-value
-
-### What is the exact meaning of p-value? {.fragile .allowframebreaks}
+# Interpret p-value
+### How to interpret p-value? {.fragile}
 
 Even if $H_0$ is \textcolor{red}{$true$}, there is still $5\%$ chance to reject $H_0$.
 ```{r}
