@@ -3,7 +3,7 @@ title: "t-test"
 subtitle: "One Sample t-test"
 abstract: "This is a presentation about t-test"
 keywords: "hypothesis testing, t-test, R"
-titlegraphic: "../../images/itu2.eps"
+titlegraphic: "../../images/itu.eps"
 titlegraphic-width: 0.15
 author:
   - \href{mailto:sezenismail@gmail.com}{İ.SEZEN}
@@ -28,66 +28,25 @@ toc-depth: 3
 justifying: yes
 output:
   beamer_presentation:
-    template: default.beamer
+    template: ../../template/default.beamer
     keep_tex: yes
     slide_level: 3
     fig_caption: yes
     theme: CambridgeUS
     colortheme: euresia
     highlight: tango
-    pandoc_args: ["--listings", "-H", "listings-setup.tex"]
-    # pandoc_args: ["--highlight-style", "my.theme"]
+    pandoc_args: ["--listings", "-H", "../../template/listings-setup.tex"]
+    # pandoc_args: ["--highlight-style", "../../template/mystyle.theme"]
     includes:
-      in_header: before_body.tex
-      # after_body: after_body.tex
+      in_header: ../../template/before_body.tex
+      after_body: ../../template/after_body.tex
     
 ---
 
 ```{r setup, include=FALSE}
-library(scales)
-library(latex2exp)
-library(ggplot2)
-library(ggrepel)
-library(kableExtra)
+source("../../setup.R")
 n <- 20
 df <- n - 1
-global_theme <- ggthemes::theme_pander() +
-  theme(rect = element_rect(fill = "transparent"),
-        panel.background = element_rect(fill = "transparent"),
-        plot.background = element_rect(fill = "transparent", color = NA))
-theme_set(global_theme)
-options(knitr.table.format = "latex")
-knitr::opts_chunk$set(echo = TRUE, background = '#FEF8DF', 
-                      fig.align = "center", fig.width = 4,
-                      fig.height = 3, out.width = '50%')
-# a common hook for messages, warnings and errors
-optlist <- c("caption", "numbers", "basicstyle", "firstnumber", "style")
-hook <- function(x, options, ..., begin = "lstlisting") {
-  if (length(x) > 1) x <- paste(x, collapse = '\n')
-  opts <- options[optlist]
-  opts <- append(list(...), opts)
-  opts[sapply(opts, is.null)] <- NULL
-  opts <- ifelse(length(opts) < 1, "",
-                 sprintf("[%s]",paste0(names(opts), "=", opts, collapse = ",")))
-  knitr::raw_latex(
-    sprintf("\n\\begin{%s}%s\n%s\n\\end{%s}\n",begin, opts, x, begin))
-}
-hook_lst_bf = function(x, options) {
-  hook(x, options, basicstyle = "{\\bfseries}")
-}
-knitr::knit_hooks$set(source = function(x, options) {
-  if (length(x) > 1) x <- paste(x, collapse = '\n')
-  hook(x, options, begin = "rcode")
-}, output = function(x, options) {
-  if ("caption" %in% names(options)) options$caption = "\\mbox{}"
-  options$firstnumber = 1
-  x <- substr(x, 1, nchar(x) - 1)
-  if (substr(x, 1, 4) == paste(options$comment,"\n")) x <- substr(x, 5, nchar(x))
-  hook(x, options, begin = "outp")
-}, warning = hook_lst_bf, message = hook_lst_bf, error = hook_lst_bf)
-
-## empty highlight header since it is not useful any more
-knitr::set_header(highlight = "")
 ```
 
 # Basics
@@ -118,7 +77,7 @@ $conf.level = 1- \alpha$
 
 You want to find out;
 
-1. if your observations come from a known normal distribution (which $\mu$ is known).
+1. if your observations are from a _known normal distribution_ (which $\mu$ is known).
 2. if your observations are similar to the observations (which $\bar{y}$ is known) from a previous study.
 
 In both cases, you need to know $\mu$ or $mean(\bar{y})$ of previous observations.
@@ -149,7 +108,7 @@ Are they from a normal distribution which $\mu = 33.2$?
 
 ### Kernel Density plot
 
-```{r, echo=FALSE,out.width = '60%'}
+```{r fig1_kernel_density, echo=FALSE,out.width = '60%'}
 labels <- c(sprintf("$\\bar{x} = %.1f$", mx),
             sprintf("$s = %.1f$", sd(x)),
             sprintf("$df = %d - 1 = %d$", n, df),
@@ -204,7 +163,7 @@ cat(sprintf("SE = %.2f\tt = %.2f", se, t))
 
 Null distribution is _student-t distribution_ with degrees of freedom $df = `r df`$.
 
-```{r, echo=FALSE}
+```{r fig2_tdist, echo=FALSE}
 y <- seq(-5, 5, 0.01)
 dat.st <- data.frame(x = y, y = dt(y, df))
 rx <- range(y)
@@ -243,7 +202,7 @@ Mark the quantiles of $\alevel$ on the plot.
 $q_{\alpha} = `r round(abs(q[1]), 3)`$
 \end{center}
 
-```{r, echo = FALSE, out.width = '40%'}
+```{r fig3_t_quantiles, echo = FALSE, out.width = '40%'}
 qlabels <- TeX(c("$-q_{\\alpha}$", "$q_{\\alpha}$"), 
                output = "character")
 qdata <- data.frame(x = q, y = 0, xend = q, yend = dt(q, df))
@@ -269,9 +228,7 @@ You can use $t$ value and $q_{\alpha}$ values to decide the test result.
 - If $-q_{\alpha} > t < q_{\alpha}$, **fail to reject** $H_0$.
 - If $-q_{\alpha} \le t \ge q_{\alpha}$, reject $H_0$.
 
-```{r, echo = FALSE}
-print(p3)
-```
+\addplot{0.5}{t_test_files/figure-beamer/fig3_t_quantiles-1}
 
 # Solution by Confidence Interval
 ## Calculate Confidence Interval
@@ -283,10 +240,10 @@ We know the quantiles of $\alevel$ for _student-t distribution_, so we can trans
 $CI = \bar{x} + (-q_{\alpha}, q_{\alpha}) \times SE$
 \end{center}
 
-```{r, echo = FALSE}
+```{r fig4_conf_int, echo = FALSE}
 (ci <- mean(x) + q * se)
 p4 <- p1 + geom_rect(xmin = ci[1], xmax = ci[2], ymin = -Inf, 
-                     ymax = Inf, alpha = 0.02, fill = "red")
+                     ymax = Inf, alpha = 0.02, fill = "forestgreen")
 print(p4)
 ```
 
@@ -320,9 +277,7 @@ You can use $\mu$ and confidence interval values to decide the test result.
 - If $c_1 > \mu < c_2$, **fail to reject** $H_0$.
 - If $c_1 \le \mu \ge c_2$, reject $H_0$.
 
-```{r, echo = FALSE}
-print(p4)
-```
+\addplot{0.5}{t_test_files/figure-beamer/fig4_conf_int-1}
 
 # Solution by $\pval$
 ## $\pval$
@@ -334,7 +289,7 @@ $\pval$ is the \textcolor{violet}{probability which generates the data}, \textco
 $t = `r round(t, 2)`$
 \end{center}
 
-```{r, echo = FALSE}
+```{r fig5_pval1, echo = FALSE}
 p_val <- pt(-abs(t), df)
 p5 <- p2 + geom_vline(xintercept = -t, linetype = "dashed", 
                       col = "blue") +
@@ -358,7 +313,7 @@ p_value <- 2 * pt(-abs(t), df)
 $\pval = p_1 + p_2 = `r sprintf("%.3f + %.3f = %.3f", p_val, p_val, p_value)`$
 \end{center}
 
-```{r, echo = FALSE}
+```{r fig6_pval2, echo = FALSE}
 p6 <- p5 +
   annotate("segment", x = c(-3.5, 3.5), y = 0.1, 
              xend = c(-1.5, 1.5), yend = 0.05,
@@ -480,7 +435,7 @@ pvals <- sapply(1:try, function(i) {
 per_of_type1 <- 100 * sum(pvals < 0.05)/try
 ```
 
-```{r, echo = FALSE, fig.height = 1.5}
+```{r fig7_pval_hist, echo = FALSE, fig.height = 1.5}
 cat(sprintf("Percent of Type I Error : %1.f%%", per_of_type1))
 breaks <- seq(0, 1, 0.05)
 a <- c(1, rep(NA, length(breaks) - 2))
