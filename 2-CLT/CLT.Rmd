@@ -1,0 +1,274 @@
+---
+title: "Central Limit Theorem"
+subtitle: ""
+abstract: "This is a presentation about Central Limit Theorem"
+keywords: "central limit theorem, R"
+titlegraphic: "../images/itu.eps"
+titlegraphic-width: 0.15
+author:
+  - \href{mailto:sezenismail@gmail.com}{İ.SEZEN}
+  - \href{mailto:alper.unal@gmail.com}{A.ÜNAL}
+institute:
+  - Eurasia Institute of Earth Sciences
+institute-short: İTÜ
+date: \today
+fontsize: 10pt
+navigation: horizontal
+graphics: yes
+graphicspath:
+  - \graphicspath{{LLN_files/figure-beamer/}}
+beamerconfig:
+    blocks: # default rounded, no shadow. Do not recommend shadows.
+      shadow:
+section-titles: # Hide section title pages
+colorlinks: yes
+linkcolor: "crimson"
+handout: true
+toc: true
+toc-title: Content
+toc-depth: 3
+justifying: yes
+bibliography: ../bibliography.bib
+link-citations: true
+output:
+  beamer_presentation:
+    template: ../template/default-2.9.2.1.beamer
+    keep_tex: yes
+    slide_level: 3
+    fig_caption: yes
+    theme: CambridgeUS
+    colortheme: euresia
+    highlight: tango
+    pandoc_args: ["--pdf-engine-opt=-shell-escape", "--listings", "-H", "../template/listings-setup.tex"]
+    includes:
+      in_header: ../template/before_body.tex
+      after_body: ../template/after_body.tex
+    
+---
+
+```{r setup, include=FALSE}
+source("../setup.R")
+n <- 10
+
+plot_dist <- function(dat, mu = NULL, sd = NULL) {
+  mu_y_pos <- diff(range(dat$y))
+  p <- ggplot(dat, aes_string("x", "y")) + 
+    geom_line(col = "orange", size = 1) +
+    labs(x = "Quantiles", y = "Density")
+
+  if (!is.null(mu)) {
+    p <- p + geom_vline(xintercept = mu, linetype = "dashed", col = "black") +
+      annotate("text", x = mu, y = mu_y_pos/10, hjust = -0.5,
+               label = TeX("$\\mu$", output = "character"), parse = TRUE)
+  }
+  if (!is.null(sd)) {
+    p <- p + 
+      geom_segment(aes(x = mu, y = 0, xend = mu - sd, yend = 0),
+                   arrow = arrow(length = unit(0.05, "inches"), 
+                                 ends = "both")) +
+      annotate("text", x = mu - sd, y = mu_y_pos/30, hjust = -0.5,
+               label = TeX("$\\sigma$", output = "character"), parse = TRUE)
+  }
+  return(p)
+}
+
+
+
+# https://www.researchgate.net/post/How_does_one_generate_random_values_of_my_own_function_distribution
+ddist <- function(x) {
+  (dnorm(x, 40, 10) + dnorm(x, 60, 5) + dnorm(x, 90, 15) + 
+     dnorm(x, 150, 10))/4
+}
+
+pdist <- function(q) {
+    (pnorm(q, 40, 10) + pnorm(q, 60, 5) + pnorm(q, 90, 15) + 
+     pnorm(q, 150, 10))/4
+}
+
+qdist <- function(p) {
+  sapply(p, function(p) {
+    if (p < 0 | p > 1) return(NaN)
+    if (p == 0) return(-Inf)
+    if (p == 1) return(Inf)
+    uniroot(function(q, p) p - sapply(q, pdist), c(-1e3, 1e3), p = p,
+            tol = sqrt(.Machine$double.eps))$root
+  })
+}
+
+rdist <- function(n) qdist(runif(n))
+
+evdist <- function() {
+  integrate(function(x) x * ddist(x), -Inf, Inf)$value
+}
+
+sddist <- function() {
+  sqrt(integrate(function(x) x^2 * ddist(x), -Inf, Inf)$value - evdist()^2)
+}
+```
+
+# Definition
+##
+### Definition {.fragile}
+<!-- .allowframebreaks -->
+
+_Central Limit Theorem_ states that if you have a population with mean $\mu$ and standard deviation $\sigma$ and take sufficiently large random samples from a population regardless of the distribution with replacement, then the distribution of the sample means will be approximately normally distributed^[[1]]^.
+
+That is, a histogram of the sample means of a large number of different batches ($k$) of the same kind of data, each of size $n$, will look like a bell curve (_Gaussian sampling distribution_) if $k$ is large enough [@Wilks2011].
+
+- Independent of the distribution of source population
+- The independence of the observations is not really necessary
+- The resulting distribution is _always_ Gaussian.
+- Standard deviation of means is _always_ less than $\sigma$.
+
+[1]: http://sphweb.bumc.bu.edu/otlt/MPH-Modules/BS/BS704_Probability/BS704_Probability12.html
+
+
+# Showcase
+##
+### Sampling from Distribution {.fragile}
+
+Assume that you have a population which has a PDF as below;
+
+```{r fig1, echo=FALSE, fig.width = 6, out.width = '90%'}
+y <- seq(0, 200, length.out = 200)
+dat <- data.frame(x = y, y = ddist(y))
+plot_dist(dat)
+```
+
+### take $n$ sample from population $k$ times {.fragile}
+
+And take $n = `r n`$ sample from population $15$ times.
+
+```{r fig2, echo=FALSE, fig.width = 7, fig.height = 4, out.width = '90%'}
+x <- as.data.frame(sapply(1:15, function(i) {
+  set.seed(i); rdist(n)
+}))
+colnames(x) <- 1:ncol(x)
+m <- colMeans(x); pm <- pretty(m)
+m <- do.call(rbind, lapply(1:length(m), function(i) {
+  x <- m[1:i]
+  data.frame(col = 1:length(x), Sample = i, x, y = 0)
+}))
+m <- cbind(type = factor("Mean"), m)
+x <- reshape2::melt(x, id.vars = 0, variable.name = "Sample",
+                    value.name = "x")
+x <- cbind(type = factor("Sample"), col = x$Sample, x, y = 0)
+x <- rbind(x, m)
+px <- pretty(x$x)
+segs1 <- data.frame(type = factor("Sample"), x = px, xend = px, 
+                    y = -0.05, yend = 0.05)
+segs2 <- data.frame(type = factor("Mean"), x = pm, xend = pm,
+                    y = -0.05, yend = 0.05)
+segs <- rbind(segs1, segs2)
+ggplot(x, aes(x, y, fill = col)) + labs(x = "") +
+  geom_hline(yintercept = 0, size = 0.3) + ylim(c(-0.1, 0.1)) +
+  geom_segment(aes(x, y, xend = xend, yend = yend), data = segs,
+               size = 0.3, inherit.aes = FALSE) +
+  geom_point(aes(shape = type), size = 2, show.legend = FALSE) +
+  scale_shape_manual(values = c(21, 24)) +
+  facet_grid(Sample ~ type, scales = "free_x", switch = "y") +
+  theme(axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        strip.text.y.left = element_text(angle = 0))
+```
+
+### Effect of $k$ {.fragile .allowframebreaks}
+
+Take $n = `r n`$ sample from population $k = 15, 100, 500, 1000$ times.
+
+```{r fig3, echo=FALSE, fig.width = 7, fig.height = 4, out.width = '90%'}
+k <- c(15, 100, 500, 1000)
+x <- as.data.frame(sapply(1:max(k), function(i) {
+  set.seed(i); rdist(n)
+}))
+colnames(x) <- 1:ncol(x)
+m <- colMeans(x); pm <- pretty(m)
+m <- data.frame(Sample = 1:length(m), x = m)
+m <- do.call(rbind, lapply(k, function(k) {
+  cbind(k = factor(k), m[m$Sample <= k,])
+}))
+m <- data.frame(type = factor("Mean"), m)
+y <- reshape2::melt(x, id.vars = 0, variable.name = "Sample",
+                    value.name = "x")
+y$Sample <- as.integer(y$Sample)
+y <- do.call(rbind, lapply(k, function(k) {
+  cbind(type = factor("Sample"), k = factor(k), y[y$Sample <= k,])
+}))
+dat <- rbind(y, m)
+
+label_k <- paste0("k=", k); names(label_k) <- k
+ploth <- function(dat) {
+  ggplot(dat, aes(x)) + labs(x = "", y = "Density") +
+  geom_histogram(aes(y=..density..), binwidth = 2, col = "black",
+                 fill = "transparent") +
+  geom_density(alpha = .2, fill = "#FF6666") +
+  facet_grid(k ~ type, scales = "free_y",
+             labeller = labeller(k = label_k)) +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank())
+}
+ploth(dat[as.integer(dat$k) <= 2,])
+ploth(dat[as.integer(dat$k) >= 3,])
+```
+
+### Effect of $n$ (Law of Large Numbers) {.fragile}
+
+Take $n = 10,100$ sample from population $k = 100$ times.
+
+```{r fig4, echo=FALSE, fig.width = 7, fig.height = 4, out.width = '90%'}
+n <- c(10, 100)
+x <- as.data.frame(sapply(1:100, function(i) { set.seed(i); rdist(max(n)) }))
+colnames(x) <- 1:ncol(x)
+xl <- list(x1 = x[1:min(n),], x2 = x)
+
+dat <- do.call(rbind, lapply(xl, function(x) {
+  m <- colMeans(x)
+  m <- data.frame(type = factor("Mean"), n = nrow(x), Sample = 1:length(m), x = m)
+  y <- reshape2::melt(x, id.vars = 0, variable.name = "Sample",
+                    value.name = "x")
+  y$Sample <- as.integer(y$Sample)
+  y <- cbind(type = factor("Sample"), n = nrow(x), y)
+  dat <- rbind(y, m)
+  dat$n <- factor(dat$n)
+  dat
+}))
+rownames(dat) <- NULL
+dat <- dat[dat$x < 200,]
+
+ci <- aggregate(x ~ type + n, dat, function(i) {
+  quantile(i, c(0.025, 0.975))
+})
+ci <- cbind(ci[,1:2], ci[,3])
+colnames(ci)[3:4] <- c("c1", "c2")
+
+ci2 <- ci
+ci2[ci2$type == "Sample",3:4] <- ci2[ci2$type == "Mean",3:4]
+
+label_n <- paste0("n=", n); names(label_n) <- n
+ploth <- function(dat) {
+  ggplot(dat, aes(x)) + labs(x = "", y = "Density") +
+    geom_density(fill = "transparent") +
+    geom_segment(aes(x = c1, xend = c2), y = 0, yend = 0, data = ci, 
+                 col = "red", size = 1) +
+    geom_rect(aes(xmin = c1, xmax = c2), data = ci2, ymin = -Inf, 
+              ymax = Inf, alpha = 0.2, fill = "forestgreen", 
+              inherit.aes = FALSE) +
+  facet_grid(n ~ type, scales = "free_y",
+             labeller = labeller(n = label_n)) +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank())
+  }
+ploth(dat)
+```
+
+# Conclusion
+## 
+### Conclusion
+
+- If number of samples $k \rightarrow \infty$, distribution of the sample means approximates to _Gauissan distribution_.
+- If sample size $n \rightarrow \infty$, standard deviation of the sample means (Standard Error) $SE \rightarrow 0$. 
+
+# References

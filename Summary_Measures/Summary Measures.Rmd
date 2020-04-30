@@ -1,0 +1,143 @@
+---
+title: "Summary Measures"
+subtitle: "Location, Spread, Symmetry"
+abstract: "This is a presentation about summary measures"
+keywords: "location, spread, symmetry, mean, variance, standard deviation, R"
+titlegraphic: "../images/itu.eps"
+titlegraphic-width: 0.15
+author:
+  - \href{mailto:sezenismail@gmail.com}{İ.SEZEN}
+  - \href{mailto:alper.unal@gmail.com}{A.ÜNAL}
+institute:
+  - Eurasia Institute of Earth Sciences
+institute-short: İTÜ
+date: \today
+fontsize: 10pt
+navigation: horizontal
+graphics: yes
+graphicspath:
+  - \graphicspath{{Quantiles_files/figure-beamer/}}
+beamerconfig:
+    blocks: # default rounded, no shadow. Do not recommend shadows.
+      shadow:
+section-titles: # Hide section title pages
+colorlinks: yes
+linkcolor: "crimson"
+handout: true
+toc: true
+toc-title: Content
+toc-depth: 3
+justifying: yes
+bibliography: ../bibliography.bib
+link-citations: true
+output:
+  beamer_presentation:
+    template: default-2.9.2.1.beamer
+    keep_tex: yes
+    slide_level: 3
+    fig_caption: yes
+    theme: CambridgeUS
+    colortheme: euresia
+    highlight: tango
+    pandoc_args: ["--pdf-engine-opt=-shell-escape", "--listings", "-H", "../template/listings-setup.tex"]
+    includes:
+      in_header: ../template/before_body.tex
+      after_body: ../template/after_body.tex
+    
+---
+
+```{r setup, include=FALSE}
+source("../setup.R")
+library(moments)
+```
+
+# Location
+##
+### Location {.fragile}
+<!-- https://www.logicmatters.net/resources/pdfs/MathFonts.pdf -->
+\begin{center}
+\textbf{Mean:} (\emph{not robust to outliers})
+\[
+\bar{x} = \frac{1}{n} \sum_{i=1}^n{x_i}
+\]
+
+\textbf{Median:} (\emph{robust})
+\[median=\begin{cases} x_{([n+1]/2)} &,n\;odd \\ \frac{x_{(n/2)}+x_{([n/2]+1)}}{2} &,n\; even \end{cases}\]
+
+\textbf{Trimean:} (\emph{robust})
+\[Trimean=\frac{q_{0.25} + 2q_{0.5} + q_{0.75}}{4}\]
+\end{center}
+
+See [@Wilks2011].
+
+### Location in R {.fragile}
+
+You have the following data. Let's calculate _mean_, _median_ and _trimean_.
+
+```{r, echo=FALSE}
+set.seed(1)
+x1 <- sort(sample.int(50, 11))
+x2 <- x1
+x2[(length(x2) - 1):length(x2)] <- c(1000, 2000)
+str <- paste0("x1 <- c(",  paste(x1, sep = "", collapse = ","), ")")
+str <- paste(str, paste0("x2 <- c(",  paste(x2, sep = "", collapse = ","), ")"),
+             sep = "\n")
+cat(str)
+```
+
+_Trimean_ calculation can be done by the `trimean` function.
+
+```{r}
+trimean <- function(x) (2 * median(x) + sum(quantile(x, c(0.25, 0.75))))/4
+cat(mean(x1), median(x1), trimean(x1))
+cat(mean(x2), median(x2), trimean(x2))
+```
+
+# Spread
+##
+### Spread {.fragile}
+
+\begin{center}
+\textbf{Standard Deviation:} (\emph{not robust})
+\[s=\sqrt{\frac{1}{n-1}\sum_{i=1}^n(x_i-\bar{x})^2}\]
+
+\textbf{IQR:} (\emph{robust})
+\[IQR =q_{0.75} - q_{0.25}\]
+
+\textbf{Median Absolute Deviation:} (\emph{robust})
+\[MAD=median\left| { x }_{ i }-{ q }_{ 0.5 } \right| \]
+\end{center}
+
+### Spread in R {.fragile}
+
+Calculate _standard deviation_, _IQR_ and _MAD_ for $x_1$ and $x_2$.
+
+```{r}
+cat(sd(x1), IQR(x1), mad(x1))
+cat(sd(x2), IQR(x2), mad(x2))
+```
+
+# Symmetry
+##
+### Symmetry {.fragile}
+
+\begin{center}
+\textbf{Skewness Coefficient:} (\emph{not robust})
+\[\gamma =\frac{ \frac{1}{n} \sum_{i=1}^n{{(x_i - \bar{x})}^3}}{s^3}\]
+
+\textbf{Yule-Kendall Index:} (\emph{robust})
+\[\gamma_{yk} = \frac{q_{0.25} - 2q_{0.5} + q_{0.75}}{IQR} \]
+\end{center}
+
+### Symmetry in R {.fragile}
+
+Calculate _skewness coefficient_ and _YK-index_  for $x_1$ and $x_2$.
+
+```{r}
+library(moments)
+yk <- function(x) (sum(quantile(x, c(0.25, 0.75))) - 2 * median(x))/IQR(x)
+cat(skewness(x1), yk(x1))
+cat(skewness(x2), yk(x2))
+```
+
+# References

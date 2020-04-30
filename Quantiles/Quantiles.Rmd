@@ -1,0 +1,161 @@
+---
+title: "Quantiles"
+subtitle: "Fractiles, Percentiles"
+abstract: "This is a presentation about Quantiles"
+keywords: "quantile, percentile, R"
+titlegraphic: "../images/itu.eps"
+titlegraphic-width: 0.15
+author:
+  - \href{mailto:sezenismail@gmail.com}{İ.SEZEN}
+  - \href{mailto:alper.unal@gmail.com}{A.ÜNAL}
+institute:
+  - Eurasia Institute of Earth Sciences
+institute-short: İTÜ
+date: \today
+fontsize: 10pt
+navigation: horizontal
+graphics: yes
+graphicspath:
+  - \graphicspath{{Quantiles_files/figure-beamer/}}
+beamerconfig:
+    blocks: # default rounded, no shadow. Do not recommend shadows.
+      shadow:
+section-titles: # Hide section title pages
+colorlinks: yes
+linkcolor: "crimson"
+handout: true
+toc: true
+toc-title: Content
+toc-depth: 3
+justifying: yes
+bibliography: ../bibliography.bib
+link-citations: true
+output:
+  beamer_presentation:
+    template: default-2.9.2.1.beamer
+    keep_tex: yes
+    slide_level: 3
+    fig_caption: yes
+    theme: CambridgeUS
+    colortheme: euresia
+    highlight: tango
+    pandoc_args: ["--pdf-engine-opt=-shell-escape", "--listings", "-H", "../template/listings-setup.tex"]
+    includes:
+      in_header: ../template/before_body.tex
+      after_body: ../template/after_body.tex
+    
+---
+
+```{r setup, include=FALSE}
+source("../setup.R")
+n <- 11
+```
+
+# Definition
+##
+### Definition {.fragile}
+<!-- .allowframebreaks -->
+
+- A sample quantile, $q_p$, is a number having the same units as the data, which exceeds that proportion of the data given by the subscript $p$, with $0 < p < 1$.
+- The sample quantile $q_p$ can be interpreted approximately as that value expected to exceed a randomly chosen member of the data set, with probability $p$.
+- Equivalently, the sample quantile $q_p$ would be regarded as the $p \times 100th$ percentile of the data set [@Wilks2011].
+- _Quantiles_ has the same unit with the data.
+
+# Showcase
+## How to calculate Quantiles
+### How to calculate Quantiles {.fragile .allowframebreaks}
+
+You measured height of $n = `r n`$ individuals.
+
+```{r, echo=FALSE}
+set.seed(1)
+x <- round(runif(n, 50, 200), 1)
+cat(paste0("x <- c(",  paste(x, sep = "", collapse = ","), ")"))
+```
+
+Sort the measurements:
+
+```{r, echo=FALSE}
+cat(paste0("x <- c(",  paste(sort(x), sep = "", collapse = ","), ")"))
+```
+\
+What is $q_{0.5}$?
+\
+\
+```{r, echo=FALSE, fig.width = 7, fig.height = 1.1, out.width = '90%'}
+mark_quantile <- function(x, probs, col = "red") {
+  qs <- quantile(x, probs)
+  unlist(lapply(1:length(qs), function(i) {
+    q <- qs[i]; p <- probs[i]
+    label <- TeX(paste0("$q_{", p, "}$"), output = "character")
+    list(geom_vline(xintercept = q, col = col, linetype = "dashed"),
+      annotate("text", q, 0, label = label, col = col, vjust = -1.5, 
+               hjust = -0.1, parse = TRUE))
+  }))
+}
+px <- pretty(x)
+segs <- data.frame(x = px, xend = px, y = -0.02, yend = 0.02)
+p1 <- ggplot(data.frame(x = x), aes(x)) + labs(x = "Length", y = "") +
+  geom_hline(yintercept = 0, size = 0.3) + ylim(c(-0.1, 0.1)) +
+  geom_segment(aes(x, y, xend = xend, yend = yend), data = segs,
+               size = 0.3, inherit.aes = FALSE) +
+  geom_point(y = 0, fill = "lightblue", shape = 21, size = 3) +
+    theme(axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) + mark_quantile(x, 0.5)
+p1
+```
+
+\newpage
+\
+What are $q_{0.25}$ and $q_{0.75}$?
+
+```{r, echo=FALSE, fig.width = 7, fig.height = 1.1, out.width = '90%'}
+(p1 <- p1 + mark_quantile(x, c(0.25, 0.75), "darkgreen"))
+```
+
+\begin{block}{Quartiles}
+$q_{0.25}$ and $q_{0.75}$ are also called as Quartiles (Hinges). Usually these are called the lower (LQ) and upper quartiles (UQ), respectively.
+\end{block}
+
+\begin{block}{Percentiles}
+$q_{0.25}$ and $q_{0.75}$ can also be named as $25^{th}$ and $75^{th}$ Percentiles.
+\end{block}
+
+\newpage
+
+What are $q_{0.1}$ and $q_{0.9}$?
+
+```{r, echo=FALSE, fig.width = 7, fig.height = 1.1, out.width = '90%'}
+(p1 <- p1 + mark_quantile(x, c(0.1, 0.9), "navyblue"))
+```
+
+What are $q_{0}$ and $q_{1}$?
+
+```{r, echo=FALSE, fig.width = 7, fig.height = 1.1, out.width = '90%'}
+(p1 <- p1 + mark_quantile(x, c(0, 1), "orange"))
+```
+
+# Interpretation
+## 
+### Interpretation {.fragile}
+
+- $q_{0.5}$ seperates data into two equal parts, which is, $50\%$ of the data is below $q_{0.5}$ and $50\%$ of the data is above the $q_{0.5}$.
+- $q_{0.25}$ seperates data into two parts, which is, $25\%$ of the data is below $q_{0.25}$ and $75\%$ of the data is above the $q_{0.25}$.
+- $q_{0.9}$ seperates data into two parts, which is, $90\%$ of the data is below $q_{0.9}$ and $10\%$ of the data is above the $q_{0.9}$.
+
+### quantile function in R {.fragile}
+
+You can calculate quantiles by the `quantile` function.
+
+```{r}
+quantile(x, c(0, 0.1, 0.25, 0.5, 0.75, 0.9, 1))
+```
+\
+\begin{alertblock}{Warning}
+Be aware that $q_{0}$ and $q_{1}$ are equal to minimum and maximum of the data, respectively. 
+\end{alertblock}
+
+# References

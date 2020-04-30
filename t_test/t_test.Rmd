@@ -3,7 +3,7 @@ title: "t-test"
 subtitle: "One Sample t-test"
 abstract: "This is a presentation about t-test"
 keywords: "hypothesis testing, t-test, R"
-titlegraphic: "../../images/itu.eps"
+titlegraphic: "../images/itu.eps"
 titlegraphic-width: 0.15
 author:
   - \href{mailto:sezenismail@gmail.com}{İ.SEZEN}
@@ -14,9 +14,8 @@ institute-short: İTÜ
 date: \today
 fontsize: 10pt
 navigation: horizontal
-header-includes:
-  - \usepackage{ragged2e}
-  - \apptocmd{\frame}{}{\justifying}{}
+graphicspath:
+  - \graphicspath{{t_test_files/figure-beamer/}}
 beamerconfig:
     blocks: # default rounded, no shadow. Do not recommend shadows.
       shadow:
@@ -28,23 +27,23 @@ toc-depth: 3
 justifying: yes
 output:
   beamer_presentation:
-    template: ../../template/default.beamer
+    template: ../template/default.beamer
     keep_tex: yes
     slide_level: 3
     fig_caption: yes
     theme: CambridgeUS
     colortheme: euresia
     highlight: tango
-    pandoc_args: ["--listings", "-H", "../../template/listings-setup.tex"]
+    pandoc_args: ["--listings", "-H", "../template/listings-setup.tex"]
     # pandoc_args: ["--highlight-style", "../../template/mystyle.theme"]
     includes:
-      in_header: ../../template/before_body.tex
-      after_body: ../../template/after_body.tex
+      in_header: ../template/before_body.tex
+      after_body: ../template/after_body.tex
     
 ---
 
 ```{r setup, include=FALSE}
-source("../../setup.R")
+source("../setup.R")
 n <- 20
 df <- n - 1
 ```
@@ -228,7 +227,7 @@ You can use $t$ value and $q_{\alpha}$ values to decide the test result.
 - If $-q_{\alpha} > t < q_{\alpha}$, **fail to reject** $H_0$.
 - If $-q_{\alpha} \le t \ge q_{\alpha}$, reject $H_0$.
 
-\addplot{0.5}{t_test_files/figure-beamer/fig3_t_quantiles-1}
+\addplot{0.5}{fig3_t_quantiles-1}
 
 # Solution by Confidence Interval
 ## Calculate Confidence Interval
@@ -277,7 +276,7 @@ You can use $\mu$ and confidence interval values to decide the test result.
 - If $c_1 > \mu < c_2$, **fail to reject** $H_0$.
 - If $c_1 \le \mu \ge c_2$, reject $H_0$.
 
-\addplot{0.5}{t_test_files/figure-beamer/fig4_conf_int-1}
+\addplot{0.5}{fig4_conf_int-1}
 
 # Solution by $\pval$
 ## $\pval$
@@ -334,7 +333,7 @@ You can use $\pval$ to decide the test result.
 - If $\pval > \alpha$, **fail to reject** $H_0$.
 - If $\pval \le \alpha$, reject $H_0$.
 
-\begin{center}\rule{0.5\linewidth}{0.5000000000pt}\end{center}
+\rulee
 
 As we **failed to reject** $H_0$ by three methods, we can conclude that our observations ($\bar{x}=`r round(mean(x), 2)`$) come from a normal distribution which $\mu = `r mu`$ with $`r 100 * conf.level`\%$ confidence. The means are not significantly different. Also, confidence interval is $CI = (`r sprintf("%.2f", ci)`)$.
 

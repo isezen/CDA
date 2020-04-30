@@ -4,14 +4,14 @@ library(ggplot2)
 library(ggrepel)
 library(kableExtra)
 
+er <- element_rect(fill = "transparent", colour = "transparent")
 global_theme <- ggthemes::theme_pander() +
-  theme(rect = element_rect(fill = "transparent"),
-        panel.background = element_rect(fill = "transparent"),
-        plot.background = element_rect(fill = "transparent", color = NA))
+  theme(rect = er, plot.background = er, panel.background = er,
+        panel.border = er)
 theme_set(global_theme)
 
 options(knitr.table.format = "latex")
-knitr::opts_chunk$set(echo = TRUE, background = '#FEF8DF',
+knitr::opts_chunk$set(cache = FALSE, echo = TRUE, background = '#FEF8DF',
                       fig.align = "center", fig.width = 4,
                       fig.height = 3, out.width = '50%')
 # a common hook for messages, warnings and errors

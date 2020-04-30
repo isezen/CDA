@@ -3,7 +3,7 @@ title: "Hypothesis Testing"
 subtitle: "(t-test)"
 abstract: "This is a presentation about Hypothesis Testing"
 keywords: "hypothesis testing, t-test, R"
-titlegraphic: images/itu2.eps
+titlegraphic: "../images/itu.eps"
 titlegraphic-width: 0.15
 author:
   - \href{mailto:sezenismail@gmail.com}{İ.SEZEN}
@@ -14,64 +14,38 @@ institute-short: İTÜ
 date: \today
 fontsize: 10pt
 navigation: horizontal
-# header-includes:
-#   include-before:
-# include-after: \input{after_body.tex}
+graphics: yes
+graphicspath:
+  - \graphicspath{{hypo_files/figure-beamer/}}
+beamerconfig:
+    blocks: # default rounded, no shadow. Do not recommend shadows.
+      shadow:
 section-titles: # Hide section title pages
 colorlinks: yes
+linkcolor: "crimson"
 toc: yes
+handout: true
 toc-title: Summary
 toc-depth: 3
 justifying: yes
 output:
   beamer_presentation:
-    template: default.beamer
+    template: ../template/default-2.9.2.1.beamer
     keep_tex: yes
     slide_level: 3
     fig_caption: yes
     theme: CambridgeUS
     colortheme: euresia
-    highlight:
-    pandoc_args: ["--listings", "-H", "listings-setup.tex"]
+    highlight: tango
+    pandoc_args: ["--pdf-engine-opt=-shell-escape", "--listings", "-H", "../template/listings-setup.tex"]
     # pandoc_args: ["--highlight-style", "my.theme"]
     includes:
-      in_header: before_body.tex
-    #   after_body: after_body.tex
-    
+      in_header: ../template/before_body.tex
+      after_body: ../template/after_body.tex
 ---
 
 ```{r setup, include=FALSE}
-library(kableExtra)
-options(knitr.table.format = "latex")
-knitr::opts_chunk$set(echo = FALSE, background = '#FEF8DF')
-# a common hook for messages, warnings and errors
-optlist <- c("caption", "numbers", "basicstyle", "firstnumber", "style")
-hook <- function(x, options, ..., begin = "lstlisting") {
-  if (length(x) > 1) x <- paste(x, collapse = '\n')
-  opts <- options[optlist]
-  opts <- append(list(...), opts)
-  opts[sapply(opts, is.null)] <- NULL
-  opts <- ifelse(length(opts) < 1, "",
-                 sprintf("[%s]",paste0(names(opts), "=", opts, collapse = ",")))
-  knitr::raw_latex(
-    sprintf("\n\\begin{%s}%s\n%s\n\\end{%s}\n",begin, opts, x, begin))
-}
-hook_lst_bf = function(x, options) {
-  hook(x, options, basicstyle = "{\\bfseries}")
-}
-knitr::knit_hooks$set(source = function(x, options) {
-  if (length(x) > 1) x <- paste(x, collapse = '\n')
-  hook(x, options, begin = "rcode")
-}, output = function(x, options) {
-  if ("caption" %in% names(options)) options$caption = "\\mbox{}"
-  options$firstnumber = 1
-  x <- substr(x, 1, nchar(x) - 2)
-  if (substr(x, 1, 4) == paste(options$comment,"\n")) x <- substr(x, 5, nchar(x))
-  hook(x, options, begin = "outp")
-}, warning = hook_lst_bf, message = hook_lst_bf, error = hook_lst_bf)
-
-## empty highlight header since it is not useful any more
-knitr::set_header(highlight = "")
+source("../setup.R")
 ```
 
 # \hypt
@@ -120,7 +94,7 @@ knitr::set_header(highlight = "")
   for the test statistic, if the _\hn{}_ is _true_.
 5. Compare the observed _\ts{}_ to the _null distribution_.
 
-## Example #1 {.fragile}
+### Example #1 {.fragile}
 
 ```{r code1, echo=TRUE, caption = "Hypothesis Testing"}
 # utility functions utility functions utility functions
@@ -140,13 +114,6 @@ readinteger <- function(...) {
             LETTERS, month.abb, airquality) # all TRUE
   return(as.integer(n))
 }
-```
-
-
-### Slide with Plot
-
-```{r pressure1}
-plot(pressure)
 ```
 
 ## Sub-Section 2

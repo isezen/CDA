@@ -1,0 +1,162 @@
+---
+title: "Law of Large Numbers"
+subtitle: ""
+abstract: "This is a presentation about Law of Large Numbers"
+keywords: "law of large numbers, R"
+titlegraphic: "../images/itu.eps"
+titlegraphic-width: 0.15
+author:
+  - \href{mailto:sezenismail@gmail.com}{İ.SEZEN}
+  - \href{mailto:alper.unal@gmail.com}{A.ÜNAL}
+institute:
+  - Eurasia Institute of Earth Sciences
+institute-short: İTÜ
+date: \today
+fontsize: 10pt
+navigation: horizontal
+graphics: yes
+graphicspath:
+  - \graphicspath{{LLN_files/figure-beamer/}}
+beamerconfig:
+    blocks: # default rounded, no shadow. Do not recommend shadows.
+      shadow:
+section-titles: # Hide section title pages
+colorlinks: yes
+toc: false
+toc-title: Summary
+toc-depth: 3
+justifying: yes
+output:
+  beamer_presentation:
+    template: ../template/default-2.9.2.1.beamer
+    keep_tex: yes
+    slide_level: 3
+    fig_caption: yes
+    theme: CambridgeUS
+    colortheme: euresia
+    highlight: tango
+    pandoc_args: ["--pdf-engine-opt=-shell-escape", "--listings", "-H", "../template/listings-setup.tex"]
+    includes:
+      in_header: ../template/before_body.tex
+      after_body: ../template/after_body.tex
+    
+---
+
+```{r setup, include=FALSE}
+source("../setup.R")
+source("LLN.R")
+
+plot_dist <- function(dat, mu, sd) {
+  mu_y_pos <- diff(range(dat$y))
+  ggplot(dat, aes_string("x", "y")) + 
+    labs(x = "Quantiles", y = "Density") +
+    geom_line(col = "orange", size = 1) +
+    geom_vline(xintercept = mu, linetype = "dashed", col = "black") +
+    geom_segment(aes(x = mu, y = 0, xend = mu - sd, yend = 0),
+                 arrow = arrow(length = unit(0.05, "inches"), ends = "both")) +
+    annotate("text", x = mu, y = mu_y_pos/10, hjust = -0.5,
+             label = TeX("$\\mu$", output = "character"), parse = TRUE) +
+    annotate("text", x = mu - sd, y = mu_y_pos/30, hjust = -0.5,
+             label = TeX("$\\sigma$", output = "character"), parse = TRUE)
+}
+```
+
+# Law of Large Numbers
+## Definition
+### Definition {.fragile}
+<!-- .allowframebreaks -->
+
+If sample size grows, its mean gets closer to _expected value_ or _population mean_.
+
+- $N$: Population size (usually unknown)
+- $\mu$: Population mean (usually unknown)
+- $n$: Sample size
+- $\bar{x}$: Sample mean
+
+\rulee
+
+\begin{center}
+if $n \rightarrow N$, then $\bar{x} \rightarrow \mu$
+\end{center}
+
+# Examples
+## Normal Dist.
+### Normal Dist. {.fragile}
+
+You take samples from a _normally distributed_ population which $\mu = 50$ and $\sigma = 5$.
+
+```{r fig1, echo = FALSE, fig.width = 7, fig.height = 3, out.width = '90%'}
+mu <- 50; sdev <- 5
+y <- qnorm(c(0.001, 0.999), mu, sdev)
+y <- seq(y[1], y[2], 0.01)
+dat <- data.frame(x = y, y = dnorm(y, mu, sdev))
+p1 <- plot_dist(dat, mu, sdev)
+
+dfm <- calc_sample_means(rnorm, mu, sdev)
+dfm <- sea2(dfm, mu, sdev)
+p2 <- plot_lln(dfm, mu, "Normal")
+ggpubr::ggarrange(p1, p2, widths = c(0.7, 1))
+```
+
+## Log-Normal Dist.
+### Log-Normal Dist. {.fragile}
+
+You take samples from a _log-normally distributed_ population which $\mu \cong 2.1$ and $\sigma \cong 1.6$.
+
+```{r fig2, echo = FALSE, fig.width = 7, fig.height = 3, out.width = '90%'}
+mulog <- 0.5; sdlog <- 0.7
+mu <- exp(mulog + (sdlog^2)/2)
+sdev <- sqrt(exp(sdlog^2 - 1) * exp(2 * mulog + sdlog^2))
+
+y <- qlnorm(c(0, 0.99), mulog, sdlog)
+y <- seq(y[1], y[2], 0.01)
+dat <- data.frame(x = y, y = dlnorm(y, mulog, sdlog))
+p1 <- plot_dist(dat, mu, sdev)
+
+dfm <- calc_sample_means(rlnorm, mulog, sdlog)
+dfm <- sea2(dfm, mu, sdev)
+p2 <- plot_lln(dfm, mu, "Log-Normal")
+ggpubr::ggarrange(p1, p2, widths = c(0.7, 1))
+```
+
+## Gamma Dist.
+### Gamma Dist. {.fragile}
+
+You take samples from a _gamma-distributed_ population which $\mu = 5$ and $\sigma \cong 1.6$.
+
+```{r fig3, echo = FALSE, fig.width = 7, fig.height = 3, out.width = '90%'}
+shape <- 10; rate <- 2; scale <- 1/rate
+mu <- (shape * scale)
+sdev <- sqrt((shape * scale^2))
+
+y <- qgamma(c(0, 0.999), shape, rate)
+y <- seq(y[1], y[2], 0.01)
+dat <- data.frame(x = y, y = dgamma(y, shape, rate))
+p1 <- plot_dist(dat, mu, sdev)
+
+dfm <- calc_sample_means(rgamma, shape, rate)
+dfm <- sea2(dfm, mu, sdev)
+p2 <- plot_lln(dfm, mu, "Gamma")
+ggpubr::ggarrange(p1, p2, widths = c(0.7, 1))
+```
+
+## Weibull Dist.
+### Weibull Dist. {.fragile}
+
+You take samples from a _weibull-distributed_ population which $\mu \cong 1.9$ and $\sigma \cong 0.2$.
+
+```{r fig4, echo = FALSE, fig.width = 7, fig.height = 3, out.width = '90%'}
+shape <- 10; scale <- 2
+mu <- (scale * gamma(1 + 1/shape))
+sdev <- sqrt((scale^2 * (gamma(1 + 2/shape) - gamma(1 + 1/shape)^2)))
+
+y <- qweibull(c(0.001, 0.99999), shape, scale)
+y <- seq(y[1], y[2], 0.01)
+dat <- data.frame(x = y, y = dweibull(y, shape, scale))
+p1 <- plot_dist(dat, mu, sdev)
+
+dfm <- calc_sample_means(rweibull, shape, scale)
+dfm <- sea2(dfm, mu, sdev) # Standard Error Analytical Solution
+p2 <- plot_lln(dfm, mu, "Weibull")
+ggpubr::ggarrange(p1, p2, widths = c(0.7, 1))
+```
