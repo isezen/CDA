@@ -3,47 +3,10 @@ title: "t-test"
 subtitle: "One Sample t-test"
 abstract: "This is a presentation about t-test"
 keywords: "hypothesis testing, t-test, R"
-titlegraphic: "../images/itu.eps"
-titlegraphic-width: 0.15
-author:
-  - \href{mailto:sezenismail@gmail.com}{İ.SEZEN}
-  - \href{mailto:alper.unal@gmail.com}{A.ÜNAL}
-institute:
-  - Eurasia Institute of Earth Sciences
-institute-short: İTÜ
-date: \today
-fontsize: 10pt
-navigation: horizontal
-graphicspath:
-  - \graphicspath{{t_test_files/figure-beamer/}}
-beamerconfig:
-    blocks: # default rounded, no shadow. Do not recommend shadows.
-      shadow:
-section-titles: # Hide section title pages
-colorlinks: yes
-toc: false
-toc-title: Summary
-toc-depth: 3
-justifying: yes
-output:
-  beamer_presentation:
-    template: ../template/default.beamer
-    keep_tex: yes
-    slide_level: 3
-    fig_caption: yes
-    theme: CambridgeUS
-    colortheme: euresia
-    highlight: tango
-    pandoc_args: ["--listings", "-H", "../template/listings-setup.tex"]
-    # pandoc_args: ["--highlight-style", "../../template/mystyle.theme"]
-    includes:
-      in_header: ../template/before_body.tex
-      after_body: ../template/after_body.tex
-    
 ---
 
 ```{r setup, include=FALSE}
-source("../setup.R")
+source("setup.R")
 n <- 20
 df <- n - 1
 ```
@@ -227,7 +190,7 @@ You can use $t$ value and $q_{\alpha}$ values to decide the test result.
 - If $-q_{\alpha} > t < q_{\alpha}$, **fail to reject** $H_0$.
 - If $-q_{\alpha} \le t \ge q_{\alpha}$, reject $H_0$.
 
-\addplot{0.5}{fig3_t_quantiles-1}
+\addplot{0.5}{t_test-fig3_t_quantiles-1}
 
 # Solution by Confidence Interval
 ## Calculate Confidence Interval
@@ -276,7 +239,7 @@ You can use $\mu$ and confidence interval values to decide the test result.
 - If $c_1 > \mu < c_2$, **fail to reject** $H_0$.
 - If $c_1 \le \mu \ge c_2$, reject $H_0$.
 
-\addplot{0.5}{fig4_conf_int-1}
+\addplot{0.5}{t_test-fig4_conf_int-1}
 
 # Solution by $\pval$
 ## $\pval$

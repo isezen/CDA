@@ -3,51 +3,10 @@ title: "Quantiles"
 subtitle: "Fractiles, Percentiles"
 abstract: "This is a presentation about Quantiles"
 keywords: "quantile, percentile, R"
-titlegraphic: "../images/itu.eps"
-titlegraphic-width: 0.15
-author:
-  - \href{mailto:sezenismail@gmail.com}{İ.SEZEN}
-  - \href{mailto:alper.unal@gmail.com}{A.ÜNAL}
-institute:
-  - Eurasia Institute of Earth Sciences
-institute-short: İTÜ
-date: \today
-fontsize: 10pt
-navigation: horizontal
-graphics: yes
-graphicspath:
-  - \graphicspath{{Quantiles_files/figure-beamer/}}
-beamerconfig:
-    blocks: # default rounded, no shadow. Do not recommend shadows.
-      shadow:
-section-titles: # Hide section title pages
-colorlinks: yes
-linkcolor: "crimson"
-handout: true
-toc: true
-toc-title: Content
-toc-depth: 3
-justifying: yes
-bibliography: ../bibliography.bib
-link-citations: true
-output:
-  beamer_presentation:
-    template: default-2.9.2.1.beamer
-    keep_tex: yes
-    slide_level: 3
-    fig_caption: yes
-    theme: CambridgeUS
-    colortheme: euresia
-    highlight: tango
-    pandoc_args: ["--pdf-engine-opt=-shell-escape", "--listings", "-H", "../template/listings-setup.tex"]
-    includes:
-      in_header: ../template/before_body.tex
-      after_body: ../template/after_body.tex
-    
 ---
 
 ```{r setup, include=FALSE}
-source("../setup.R")
+source("setup.R")
 n <- 11
 ```
 

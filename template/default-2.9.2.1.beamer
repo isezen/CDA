@@ -14,7 +14,6 @@ $if(CJKmainfont)$
 $endif$
 %
 \documentclass[
-mathserif,
 $if(fontsize)$
   $fontsize$,
 $endif$

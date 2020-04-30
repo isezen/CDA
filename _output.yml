@@ -1,0 +1,17 @@
+beamer_presentation:
+  toc: false
+  df_print: kable
+  citation_package: # natbib
+  template: template/default-2.9.2.1.beamer
+  keep_tex: false
+  slide_level: 3
+  fig_caption: yes
+  theme: CambridgeUS
+  colortheme: euresia
+  highlight: tango
+  latex_engine: pdflatex
+  pandoc_args: ["--pdf-engine-opt=-shell-escape", "--metadata-file=_beamer.yml", "--listings", "-H", "template/listings-setup.tex", "--filter","/usr/local/bin/pandoc-citeproc"]
+  includes:
+    in_header: template/before_body.tex
+    before_body:
+    after_body: template/after_body.tex

@@ -4,6 +4,7 @@ library(ggplot2)
 library(ggrepel)
 library(kableExtra)
 
+
 er <- element_rect(fill = "transparent", colour = "transparent")
 global_theme <- ggthemes::theme_pander() +
   theme(rect = er, plot.background = er, panel.background = er,
@@ -11,7 +12,11 @@ global_theme <- ggthemes::theme_pander() +
 theme_set(global_theme)
 
 options(knitr.table.format = "latex")
-knitr::opts_chunk$set(cache = FALSE, echo = TRUE, background = '#FEF8DF',
+prefix <- tools::file_path_sans_ext(knitr::current_input())
+fig_path <- paste0("_figures/", prefix, "-")
+cache_path <- paste0("_cache/", prefix, "-")
+knitr::opts_chunk$set(cache.path = cache_path, cache = TRUE, echo = TRUE,
+                      background = '#FEF8DF', fig.path = fig_path,
                       fig.align = "center", fig.width = 4,
                       fig.height = 3, out.width = '50%')
 # a common hook for messages, warnings and errors

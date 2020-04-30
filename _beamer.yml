@@ -1,0 +1,31 @@
+---
+author:
+  - \href{mailto:sezenismail@gmail.com}{İ.SEZEN}
+  - \href{mailto:alper.unal@gmail.com}{A.ÜNAL}
+institute:
+  - Eurasia Institute of Earth Sciences
+  - Istanbul Technical University
+institute-short: İTÜ
+titlegraphic: 'images/itu.pdf'
+titlegraphic-width: 0.15
+handout: true
+graphics: yes
+graphicspath:
+  - \graphicspath{{_figures/}}
+date: \today
+classoption:
+  - mathserif
+fontsize: 10pt
+navigation: horizontal
+beamerconfig:
+    blocks: # default rounded, no shadow. Do not recommend shadows.
+      shadow:
+section-titles: # Hide section title pages
+colorlinks: yes
+linkcolor: "crimson"
+toc-title: Content
+toc-depth: 3
+justifying: yes
+bibliography: bibliography.bib
+link-citations: true
+---
