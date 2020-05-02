@@ -3,6 +3,7 @@ title: "Summary Measures"
 subtitle: "Location, Spread, Symmetry"
 abstract: "This is a presentation about summary measures"
 keywords: "location, spread, symmetry, mean, variance, standard deviation, R"
+toc-multicol: false
 ---
 
 ```{r setup, include=FALSE}

@@ -43,5 +43,5 @@ vignettes/*.pdf
 *.synctex.gz
 *.log
 
-*_figures/
-/*.pdf
+# ignore folders starts with _
+_*/

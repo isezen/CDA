@@ -42,10 +42,16 @@ $if(background-image)$
   \includegraphics[width=\paperwidth]{$background-image$}%
 }
 $endif$
+
+$if(toc-multicol)$
+\usepackage{multicol}
+$endif$
+
 \usepackage{pgfpages}
 \setbeamertemplate{caption}[numbered]
 \setbeamertemplate{caption label separator}{: }
 \setbeamercolor{caption name}{fg=normal text.fg}
+\setbeamercolor{block title}{bg=green!50!black,fg=white}
 \beamertemplatenavigationsymbols$if(navigation)$$navigation$$else$empty$endif$
 $for(beameroption)$
 \setbeameroption{$beameroption$}
@@ -75,16 +81,39 @@ $if(section-titles)$
 \AtBeginPart{
   \frame{\partpage}
 }
+
 \AtBeginSection{
   \ifbibliography
   \else
     \frame{\sectionpage}
   \fi
 }
+
 \AtBeginSubsection{
   \frame{\subsectionpage}
 }
 $endif$
+
+$if(toc-at-begin-section)$
+\AtBeginSection{
+$if(toc-title)$
+\renewcommand*\contentsname{$toc-title$}
+$endif$
+\begin{frame}$if(toc-allowframebreaks)$[allowframebreaks]$endif$
+$if(toc-title)$
+  \frametitle{$toc-title$}
+$endif$
+$if(toc-multicol)$
+\begin{multicols}{$toc-multicol$}
+$endif$
+\tableofcontents[currentsection,currentsubsection]
+$if(toc-multicol)$
+\end{multicols}
+$endif$
+\end{frame}
+}
+$endif$
+
 $endif$
 $if(beamerarticle)$
 \usepackage{beamerarticle} % needs to be loaded first
@@ -164,7 +193,7 @@ $if(colortheme)$
 \usecolortheme{$colortheme$}
 $endif$
 $if(fonttheme)$
-\usefonttheme{$fonttheme$}
+\usefonttheme[$for(fonttheme-opts)$$fonttheme-opts$$sep$,$endfor$]{$fonttheme$}
 $endif$
 $if(mainfont)$
 \usefonttheme{serif} % use mainfont rather than sansfont for slide text
@@ -175,7 +204,6 @@ $endif$
 $if(outertheme)$
 \useoutertheme{$outertheme$}
 $endif$
-$endif$
 
 % if it is a handout show the notes text; otherwise don't
 $if(handout)$
@@ -184,6 +212,8 @@ $if(handout)$
 $else$
 \setbeameroption{hide notes}
 \setbeamertemplate{note page}[plain]
+$endif$
+
 $endif$
 
 % Use upquote if available, for straight quotes in verbatim environments
@@ -423,6 +453,7 @@ $if(logo)$
 $endif$
 $endif$
 
+$if(beamer)$
 $if(colorlinks)$
 % Prevent `hyperref` from changing the color of section and subsection hyperlinks
 % https://tex.stackexchange.com/questions/481025/prevent-hyperref-from-changing-the-color-of-section-and-subsection-hyperlinks
@@ -431,6 +462,7 @@ $if(colorlinks)$
 \makeatletter
 \addtobeamertemplate{headline}{\disablecolorlinks{}}{}
 \addtobeamertemplate{footline}{\disablecolorlinks{}}{}
+$endif$
 $endif$
 
 \begin{document}
@@ -463,7 +495,13 @@ $if(beamer)$
 $if(toc-title)$
   \frametitle{$toc-title$}
 $endif$
-  \tableofcontents[hideallsubsections]
+$if(toc-multicol)$
+\begin{multicols}{$toc-multicol$}
+$endif$
+\tableofcontents
+$if(toc-multicol)$
+\end{multicols}
+$endif$
 \end{frame}
 $else$
 {
@@ -471,7 +509,8 @@ $if(colorlinks)$
 \hypersetup{linkcolor=$if(toccolor)$$toccolor$$else$$endif$}
 $endif$
 \setcounter{tocdepth}{$toc-depth$}
-\tableofcontents
+% \tableofcontents
+\tableofcontents[hideallsubsections]
 }
 $endif$
 $endif$

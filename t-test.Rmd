@@ -20,7 +20,8 @@ df <- n - 1
 2. $H_0$: $\bar{x}$ is equal to $\mu$. ($\bar{x} = \mu$), ($\pval > \alpha$).
 3. $H_A$: $\bar{x}$ is different than $\mu$. ($\bar{x} \neq \mu$), ($\pval \le \alpha$)
 4. _null distribution_ is _student-t distribution_, which is simply the sampling distribution for the test statistic, if the $H_{0}$ is _true_.
-5. Compare the observed _\ts{}_ to the _null distribution_.
+5. Compare the observed _\ts{}_ to the _null distribution_ [@Wilks2011].
+
 
 ## $\alpha$ and Confidence Levels
 ### $\alpha$ and Confidence Levels {.fragile}
@@ -28,11 +29,11 @@ df <- n - 1
 1. **Significance ($\boldsymbol\alpha$) level:** The probability of rejecting the $H_0$ when the null hypothesis is true.
 2. **Confidence Level:** The probability of confidence interval contains the true population mean ($\mu$). \textcolor{violet}{It is not the probability of which the $\mu$ lies within interval.}
 
-\begin{center}
+```{block, type='ebox', latex.options=''}
 $\alpha = 0.05$
 
 $conf.level = 1- \alpha$
-\end{center}
+```
 
 ## When to use?
 ### When to use?
@@ -62,11 +63,17 @@ mx <- mean(x)
 cat(paste0("x <- c(",  paste(x, sep = "", collapse = ","), ")"))
 ```
 
-\rulee
+<!-- \begin{alertblock}{Question} -->
+<!-- Are they from a normal distribution which $\mu = 33.2$? -->
+<!-- \end{alertblock} -->
 
-\begin{alertblock}{Question}
+<!-- :::: {.alertblock data-latex=""} -->
+<!-- Are they from a normal distribution which $\mu = 33.2$? -->
+<!-- :::: -->
+
+```{block, type='qbox'}
 Are they from a normal distribution which $\mu = 33.2$?
-\end{alertblock}
+```
 
 ### Kernel Density plot
 
@@ -88,7 +95,9 @@ p1 <- ggplot(data.frame(x), aes(x = x)) +
 print(p1)
 ```
 
+```{block, type='qbox'}
 Don't we have any female older than 75?
+```
 
 # How to Solve?
 ## Define $\alevel$
@@ -115,12 +124,11 @@ t <- (mean(x) - mu)/se # What's happening here?
 cat(sprintf("SE = %.2f\tt = %.2f", se, t))
 ```
 
-\begin{exampleblock}{Question}
-- Why $SE$ and $\sigma$ are different?
+```{block, type='qbox'}
+1- Why $SE$ and $\sigma$ are different?
 
-- What is the meaning of $t$?
-\end{exampleblock}
-
+2- What is the meaning of $t$?
+```
 ### student-t distribution {.fragile}
 
 Null distribution is _student-t distribution_ with degrees of freedom $df = `r df`$.
@@ -144,9 +152,9 @@ p2 <- ggplot(dat.st, aes(x, y)) +
 print(p2)
 ```
 
-\begin{alertblock}{Alert}
+```{block, type='abox'}
 student-t distribution is defined only by degrees of freedom ($\mu = 0$ and $\sigma = 1$).
-\end{alertblock}
+```
 
 # Solution by Quantiles of $\alevel$
 ## Calculate Quantiles of $\alevel$
@@ -211,11 +219,9 @@ print(p4)
 
 ### Deep look into Confidence Interval
 
-\begin{alertblock}{Question}
+```{block, type='qbox'}
 How did we calculate the confidence interval? What did we use?
-\end{alertblock}
-
-\rulee
+```
 
 \begin{center}
 $CI(\bar{x}, q_{\alpha}, SE)$, 
@@ -286,7 +292,10 @@ p6 <- p5 +
                        output = "character"), parse = TRUE, col = "brown")
 print(p6)
 ```
+
+```{block, type='qbox'}
 How to calculate $\pval$ for normal distribution?
+```
 
 ## Decide test result
 ### Method-III (Decide test result) {.fragile}
@@ -296,9 +305,10 @@ You can use $\pval$ to decide the test result.
 - If $\pval > \alpha$, **fail to reject** $H_0$.
 - If $\pval \le \alpha$, reject $H_0$.
 
-\rulee
-
+```{block, echo = TRUE, type='ibox'}
 As we **failed to reject** $H_0$ by three methods, we can conclude that our observations ($\bar{x}=`r round(mean(x), 2)`$) come from a normal distribution which $\mu = `r mu`$ with $`r 100 * conf.level`\%$ confidence. The means are not significantly different. Also, confidence interval is $CI = (`r sprintf("%.2f", ci)`)$.
+
+```
 
 # t-test function in R
 ## Use t-test for \hypt
@@ -341,17 +351,13 @@ t.test(x, alternative = "greater", mu = mu, conf.level = conf.level)
 ## One-Tail or Two Tail?
 ### Which one should I use?{.fragile}
 
-\begin{exampleblock}{Question}
-
+```{block, type='qbox'}
 Which does it make sense? 
 
-\begin{itemize}
-\item Equality
-\item Less
-\item Greater
-\end{itemize}
-
-\end{exampleblock}
+* Equality
+* Less
+* Greater
+```
 
 # What if \hn{} is false?
 ## Another t-test Example
@@ -414,5 +420,5 @@ ggplot(data.frame(x = pvals), aes(x)) +
 # power.t.test(n, mu - mean(x), sd(x), alpha, type = "one.sample")
 ```
 
-\newpage
+# References
 

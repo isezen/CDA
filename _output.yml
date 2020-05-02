@@ -1,17 +1,53 @@
 beamer_presentation:
-  toc: false
-  df_print: kable
-  citation_package: # natbib
-  template: template/default-2.9.2.1.beamer
-  keep_tex: false
   slide_level: 3
+  number_sections: false
+  incremental: false
+  fig_width: 4
+  fig_height: 3
   fig_caption: yes
+  dev: pdf
+  df_print: kable
   theme: CambridgeUS
   colortheme: euresia
+  fonttheme: serif
   highlight: tango
+  template: template/default-2.9.2.1.beamer
+  keep_tex: true
+  keep_md: true
   latex_engine: pdflatex
-  pandoc_args: ["--pdf-engine-opt=-shell-escape", "--metadata-file=_beamer.yml", "--listings", "-H", "template/listings-setup.tex", "--filter","/usr/local/bin/pandoc-citeproc"]
+  citation_package:
+    - none
+    - natbib
+    - biblatex
+  self_contained: true
   includes:
     in_header: template/before_body.tex
     before_body:
     after_body: template/after_body.tex
+  md_extensions:
+  pandoc_args: ["--pdf-engine-opt=-shell-escape", "--metadata-file=_beamer.yml", "--listings", "-H", "template/listings-setup.tex", "--filter","/usr/local/bin/pandoc-citeproc"]
+pdf_document:
+  toc: true
+  toc_depth: 2
+  number_sections: false
+  fig_width: 4
+  fig_height: 3
+  fig_crop: true
+  fig_caption: yes
+  dev: pdf
+  df_print: kable
+  highlight: tango
+  template: template/default-2.9.2.1.beamer
+  keep_tex: false
+  keep_md: false
+  latex_engine: pdflatex
+  citation_package:
+    - none
+    - natbib
+    - biblatex
+  includes:
+    in_header: template/before_body.tex
+    before_body:
+    after_body: template/after_body.tex
+  md_extensions:
+  pandoc_args: ["--pdf-engine-opt=-shell-escape", "--metadata-file=_beamer.yml", "--listings", "-H", "template/listings-setup.tex", "--filter","/usr/local/bin/pandoc-citeproc"]

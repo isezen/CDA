@@ -3,6 +3,7 @@ title: "Quantiles"
 subtitle: "Fractiles, Percentiles"
 abstract: "This is a presentation about Quantiles"
 keywords: "quantile, percentile, R"
+toc-multicol: false
 ---
 
 ```{r setup, include=FALSE}
