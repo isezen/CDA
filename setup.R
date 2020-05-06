@@ -2,7 +2,8 @@ library(scales)
 library(latex2exp)
 library(ggplot2)
 library(ggrepel)
-library(kableExtra)
+library(xtable)
+# https://bookdown.org/yihui/bookdown/custom-blocks.html
 
 if (!exists("knitr_cache")) knitr_cache <- FALSE
 # set ggplot theme
@@ -17,7 +18,9 @@ prefix <- tools::file_path_sans_ext(knitr::current_input())
 fig_path <- paste0("_figures/", prefix, "-")
 cache_path <- paste0("_cache/", prefix, "-")
 
-options(knitr.table.format = "latex")
+# options(knitr.table.format = "latex")
+options(xtable.comment = FALSE)
+options(width = 80)
 knitr::opts_chunk$set(
   echo = TRUE,
   cache = knitr_cache,
@@ -44,13 +47,48 @@ hook_lst_bf = function(x, options) {
   hook(x, options, basicstyle = "{\\bfseries}")
 }
 
+knitr::knit_engines$set(
+  box = function(options) {
+    type <- options$type
+    options$type <- ifelse(length(type) == 0, "dbox", paste0(type, "box"))
+    knitr::knit_engines$get("block")(options)
+  },
+  equation = function(options) {
+    options$type <- "align*"
+    knitr::knit_engines$get("block")(options)
+  }
+)
+
 knitr::knit_hooks$set(source = function(x, options) {
-  if (length(x) > 1) x <- paste(x, collapse = '\n')
-  hook(x, options, begin = "rcode")
+  if (options$engine == "R") {
+    if (length(x) > 1) x <- paste(x, collapse = '\n')
+    return(hook(x, options, begin = "rcode"))
+  }
+  x
+},
+inline = function(x) {
+  if (is.numeric(x)) x = knitr:::round_digits(x)
+  paste(as.character(x), collapse = ", ")
+},
+evaluate.inline = function(code, envir = knitr::knit_global()) {
+  v = withVisible(eval(xfun::parse_only(code), envir = envir))
+  last_val <- v
+  if (v$visible) {
+    last_val = knitr::knit_print(v$value, inline = TRUE, options = knitr::opts_chunk$get())
+  }
+  return(last_val)
+},
+chunk = function(x, options) {
+  if (options$engine == "box") {
+    return(knitr:::process_group.inline(knitr:::split_file(x)[[1]]))
+  }
+  x
 },
 output = function(x, options) {
+  # print(names(options))
+  if (options$results == 'asis') return(x)
   if ("caption" %in% names(options)) options$caption = "\\mbox{}"
-  options$firstnumber = 1
+  # options$firstnumber = 1
   x <- substr(x, 1, nchar(x) - 1)
   if (substr(x, 1, 4) == paste(options$comment,"\n")) x <- substr(x, 5, nchar(x))
   hook(x, options, begin = "outp")
@@ -62,32 +100,27 @@ error = hook_lst_bf)
 ## empty highlight header since it is not useful any more
 knitr::set_header(highlight = "")
 
-# -----
-
-buildpdf <- function(cache = FALSE, ...) {
-  library(knitr)
-  knitr_cache <<- cache
-  if (!cache) unlink("_cache", recursive = TRUE)
-  dir.create("_pdf_files", showWarnings = FALSE)
-  for (file in list.files(pattern = '\\.Rmd$')) {
-    r <- rmarkdown::render(file, output_dir = "_pdf_files/", quiet = TRUE)
-    cat("Rendered:", r, "\n")
+include_graphics <-
+  function(path, auto_pdf = getOption("knitr.graphics.auto_pdf", FALSE),
+           dpi = NULL, error = TRUE, latex.remove.dir = TRUE) {
+  path = knitr:::native_encode(path)
+  if (auto_pdf && knitr::is_latex_output()) {
+    path2 = xfun::with_ext(path, "pdf")
+    i = file.exists(path2)
+    if (latex.remove.dir) path2 <- basename(path2)
+    path[i] = path2[i]
   }
-  files_to_copy <- c("images", "_figures", "template", "_output.yml",
-                     "_beamer.yml", "bibliography.bib")
-  invisible(lapply(c("md", "tex"), function(p) {
-    file <- list.files("_pdf_files", pattern = sprintf('\\.%s$', p),
-                       full.names = TRUE)
-    td <- sprintf("_%s_files/", p)
-    if (length(file) > 0) {
-      dir.create(td, showWarnings = FALSE)
-      file.copy(file, td)
-      file.remove(file)
-      file.copy(files_to_copy, td, recursive = TRUE)
-    } else {
-      unlink(td, recursive = TRUE)
-      unlink(paste0("_pdf_files/*.", p))
-    }
-  }))
-}
+  if (error && length(p <- path[!knitr:::is_web_path(path) & !file.exists(path)]))
+    stop("Cannot find the file(s): ", paste0("\"", p, "\"",
+                                             collapse = "; "))
+  structure(path, class = c("knit_image_paths", "knit_asis"),
+            dpi = dpi)
+  }
 
+print.df <- function(x, ...) {
+  rws <- if (nrow(x) < 3) 1 else seq(1, (nrow(x) - 1), by = 2)
+  if (nrow(x) < 2) rws <- 0
+  col <- rep("\\rowcolor[gray]{0.95}", length(rws))
+  print(xtable::xtable(x), booktabs = TRUE,
+        add.to.row = list(pos = as.list(rws), command = col), ...)
+}

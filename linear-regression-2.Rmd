@@ -1,0 +1,348 @@
+---
+title: "Linear Regression - II"
+subtitle: "Examples"
+abstract: "This is a presentation about linear regression"
+keywords: "linear regression, R"
+toc-multicol: false
+---
+
+```{r setup, include=FALSE}
+source("setup.R")
+library(forecast)
+library(lmtest)
+library(ggfortify)
+nr <- sum(complete.cases(airquality))
+contains <- function(fit, pattern) {
+  f <- as.character(fit$call$formula)
+  (length(grep(pattern, f))) != 0
+}
+mylog <- function(fit) {
+  fun <- function(x) x
+  if (contains(fit, "log")) fun <- function(x) exp(x)
+  if (contains(fit, "log10")) fun <- function(x) 10^x
+  return(fun)
+}
+get_res <- function(fit) {
+  lg <- mylog(fit)
+  r <- resid(fit)
+  if (contains(fit, "log")) {
+    o <- lg(fit$model[,1])
+    r <- o - o/lg(r)
+  }
+  return(r)
+}
+res_std_err <- function(fit) {
+  sqrt(sum(get_res(fit)^2)/fit$df.residual)
+}
+get_metrics <- function(fit) {
+  lg <- mylog(fit)
+  o <- lg(fit$model[,1])
+  p <- lg(predict(fit))
+  rmse <- round(Metrics::rmse(o, p), 2)
+  mae <- round(Metrics::mae(o, p), 2)
+  res.se <- round(res_std_err(fit), 2)
+  return(c(RMSE = rmse, MAE = mae, Res.SE = res.se))
+}
+```
+
+# airquality Dataset
+## Exploratory Analysis
+### EDA {.fragile}
+<!-- .allowframebreaks -->
+
+Let's explore `airquality` dataset. Rows contains any `NA` were removed for convenience. We have $`r nr`$ obeservation after removal.
+
+```{r}
+aq <- airquality
+aq$Temp <- ((aq$Temp - 32) * (5 / 9))
+aq <- aq[complete.cases(aq),]
+print(head(aq), digits = 0)
+```
+
+### Summary {.fragile}
+
+```{r}
+summary(aq)
+```
+
+### Pairs plot {.fragile}
+
+```{r, echo = FALSE, fig.width = 10, fig.height = 6.5, out.width = '90%'}
+nrm <- function(x, min = 0, max = 1, range_x = range(x)) {
+  a <- (max - min)/(max(range_x) - min(range_x))
+  b <- max - a * max(range_x)
+  a * x + b
+}
+panel <- function(x, y, ...) {
+  ok <- is.finite(x) & is.finite(y)
+  if (any(ok)) {
+    xx <- x[ok]; yy <- y[ok]
+    if (par("xlog")) xx <- log10(xx)
+    if (par("ylog")) yy <- log10(yy)
+    fit <- lm(yy ~ xx)
+    abline(fit, col = "Navy")
+  }
+  panel.smooth(x, y, ...)
+}
+upper.panel <- function(x, y, ...) {
+  u <- par("usr")
+  xl <- par("xlog")
+  yl <- par("ylog")
+  points(x, y, ...)
+  panel.smooth(x, y, ...)
+  panel(x, y, ...)
+  xx <- if (xl) log10(x) else x
+  yy <- if (yl) log10(y) else y
+  r <- cor(xx, yy, use = "p")
+  xx <- nrm(0, u[1], u[2], c(0, 1))
+  yy <- nrm(0.9, u[3], u[4], c(0, 1))
+  if (par("xlog")) xx <- 10^xx
+  if (par("ylog")) yy <- 10^yy
+  text(xx, yy, sprintf("r = %.2f", r), cex = 2, adj = -0.1, col = "blue")
+}
+diag.panel <- function(x, ...) {
+  ylog <- par("ylog"); on.exit(par(ylog))
+  xlog <- par("xlog"); u <- par("usr")
+  par(ylog = FALSE)
+  tryd <- try(d <- density(if (xlog) log10(x) else x, na.rm = TRUE), silent = TRUE)
+  if (class(tryd) != "try-error") {
+    if (xlog) d$x <- 10^d$x
+    d$y <- nrm(d$y, u[3], u[4] * 0.8)
+    lines(d$x, d$y, col = "dodgerblue4", xlog = xlog)
+  }
+  rug(x)
+  axis(1, pretty(x), tcl = 0.5, tck = 0.04, lwd = 0.5, labels = FALSE, xlog = xlog)
+}
+pairs(aq[1:4], panel = panel,
+      upper.panel = upper.panel, diag.panel = diag.panel,
+      cex = 0.7, pch = 20, gap = 0)
+```
+
+### Pairs plot - log of Ozone {.fragile}
+
+```{r, echo = FALSE, fig.width = 10, fig.height = 6.5, out.width = '90%'}
+pairs(Ozone ~ Solar.R + Wind + Temp, aq,
+      panel = panel, log = 1,
+      upper.panel = upper.panel, diag.panel = diag.panel,
+      cex = 0.7, pch = 20, gap = 0)
+```
+
+## Fit Multiple Linear Regression
+### Fitting for Ozone {.fragile .allowframebreaks}
+
+Fit a _multiple linear model_ to predict _Ozone_ concentration.
+```{r}
+fit1 <- lm(Ozone ~ Solar.R + Wind + Temp, aq)
+summary(fit1)
+```
+
+### Diagnostics {.fragile .allowframebreaks}
+
+```{r, include = TRUE, fig.width = 10, fig.height = 5, out.width='90%'}
+library(ggfortify)
+autoplot(fit1)
+```
+
+```{r, include = TRUE, fig.width = 7, fig.height = 3, out.width='90%'}
+autoplot(fit1, which = c(4, 6))
+```
+
+### Prediction for Ozone {.fragile}
+
+```{r, echo = FALSE, results = 'asis'}
+p <- data.frame(n = 1:nrow(aq), Original = aq$Ozone, fit1 = predict(fit1))
+dat <- reshape2::melt(p, id.vars = 1, variable.name = "Type", 
+                      value.name = "Ozone")
+dfe <- data.frame(fit1 = get_metrics(fit1))
+print.df(t(dfe))
+```
+
+```{r, echo = FALSE, fig.width = 7, fig.height = 4, out.width='90%'}
+ggplot(dat, aes(n, Ozone, col = Type)) +
+  geom_point() + geom_line() + 
+  geom_hline(yintercept = 0, linetype = "dashed")
+```
+
+### Fitting for log of Ozone {.fragile .allowframebreaks}
+
+Fit a _multiple linear model_ to predict _log of Ozone_ concentration.
+
+```{r}
+fit2 <- lm(log10(Ozone) ~ Solar.R + Wind + Temp, aq)
+summary(fit2)
+```
+
+### Diagnostics {.fragile .allowframebreaks}
+
+```{r, include = TRUE, fig.width = 10, fig.height = 5, out.width='90%'}
+autoplot(fit2)
+```
+
+```{r, include = TRUE, fig.width = 7, fig.height = 3, out.width='90%'}
+autoplot(fit2, which = c(4, 6))
+```
+
+### Prediction {.fragile}
+
+```{r, echo = FALSE, results = 'asis'}
+p <- cbind(p, fit2 = 10^predict(fit2))
+dat <- reshape2::melt(p, id.vars = 1, variable.name = "Type", 
+                      value.name = "Ozone")
+dfe <- cbind(dfe, fit2 = get_metrics(fit2))
+print.df(t(dfe))
+```
+
+
+```{r, echo = FALSE, fig.width = 7, fig.height = 3.5, out.width='90%'}
+ggplot(dat, aes(n, Ozone, col = Type)) +
+  geom_point(size = 0.5) + geom_line() + 
+  geom_hline(yintercept = 0, linetype = "dashed")
+```
+
+
+
+## Durbin Watson Test
+### Definition {.fragile}
+
+_Durbin–Watson test_ is a test statistic used to detect the presence of autocorrelation at $lag = 1$ in the residuals (prediction errors) from a regression analysis.
+
+```{r, eval = FALSE}
+library(lmtest)
+dwtest(formula, order.by = NULL, 
+       alternative = c("greater", "two.sided", "less"),
+       iterations = 15, exact = NULL, tol = 1e-10, data = list())
+```
+
+* $H_0$ is that there is no correlation among residuals, i.e., they are independent.
+* $H_a$ is that residuals are autocorrelated. 
+
+### Interpretation {.fragile .allowframebreaks}
+
+How to interpret _Durbin-Watson test_ output?
+
+```{r}
+(dwt1 <- dwtest(fit1))
+```
+
+You **fail to reject** $H_0$ at $\alpha = 0.05$ for `fit1`.
+
+\newpage
+
+How to interpret _Durbin-Watson test_ output?
+
+```{r}
+(dwt2 <- dwtest(fit2))
+```
+
+You **fail to reject** $H_0$ at $\alpha = 0.05$ for `fit2`.
+ 
+### Check Residuals {.fragile .allowframebreaks}
+
+<!--
+BG-test: null-hypo is that there is no serial correlation of any order up to n
+-->
+
+```{r, fig.width = 8, fig.height = 2.5, out.width = '90%'}
+forecast::checkresiduals(fit1)
+```
+
+\newpage
+
+```{r, fig.width = 8, fig.height = 2.5, out.width = '90%'}
+forecast::checkresiduals(fit2)
+```
+
+## Principal Component Analysis
+### How to use PCA for linear Regression {.fragile .allowframebreaks}
+
+We can use _PCA_ to set up a linear model. _R_ has two functions:
+
+* `prcomp`: Spectral Decomposition
+* `princomp`: Singular Value Decomposition
+
+```{r}
+(pca <- prcomp(aq[,2:4], center = TRUE, scale. = TRUE))
+```
+
+<!-- pca2 <- princomp(aq[,2:4], cor = TRUE) -->
+
+\newpage
+
+```{r}
+(spca <- summary(pca))
+```
+
+```{r, echo = FALSE}
+plot(spca$importance[2,] * 100, type = "b", bty = "n", ylab = "proportion of variance (%)", xlab = "PC")
+```
+
+### Pairs plot of PCs {.fragile}
+
+```{box, type = 'info'}
+PCs are not correlated.
+```
+
+```{r, echo = FALSE, fig.width = 8, fig.height = 4.5, out.width = '90%'}
+dat.pca <- cbind(aq$Ozone, pca$x)
+pairs(dat.pca, panel = panel, upper.panel = upper.panel, diag.panel = diag.panel,
+      log = 1, cex = 0.7, pch = 20, gap = 0)
+```
+
+### Fit a linear model for PC1 {.fragile .allowframebreaks}
+
+```{r}
+fit3 <- lm(log10(aq$Ozone) ~ pca$x[,1])
+summary(fit3)
+```
+
+```{r, echo = FALSE, fig.width = 7, fig.height = 5, out.width = '90%'}
+dat <- data.frame(Ozone = aq$Ozone, PC1 = pca$x[,1])
+ggplot(dat, aes(x = PC1, y = Ozone)) + 
+  geom_point() +
+  stat_smooth(method = "lm", col = "red", formula = y ~ x) +
+  scale_y_continuous(trans = log10_trans(),
+    breaks = trans_breaks("log10", function(x) 10^x),
+    labels = trans_format("log10", math_format(10^.x)))
+```
+
+### Fit a LM for PC1 + PC3? {.fragile}
+
+```{r, echo = FALSE}
+fit4 <- lm(log10(aq$Ozone) ~ pca$x[,1] + pca$x[,3])
+summary(fit4)
+```
+
+### Prediction {.fragile .allowframebreaks}
+
+```{r, echo = FALSE, results = 'asis'}
+p <- cbind(p, fit3 = 10^predict(fit2), fit4 = 10^predict(fit4))
+dat <- reshape2::melt(p, id.vars = 1, variable.name = "Models", 
+                      value.name = "Ozone")
+dfe <- cbind(dfe, fit3 = get_metrics(fit3), fit4 = get_metrics(fit4))
+print.df(dfe)
+```
+
+
+```{r, echo = FALSE, fig.width = 7, fig.height = 3.3, out.width='90%'}
+ggplot(dat, aes(n, Ozone, col = Models)) +
+  geom_point(size = 0.5) + geom_line() + 
+  geom_hline(yintercept = 0, linetype = "dashed")
+```
+
+```{r, echo = FALSE, fig.width = 7, fig.height = 3.5, out.width='90%'}
+dat.res <- sapply(list(fit1, fit2, fit3, fit4), get_res)
+colnames(dat.res) <- paste0("fit", 1:ncol(dat.res))
+dat.res <- as.data.frame(cbind(n = 1:nrow(dat.res), dat.res))
+dat.res <- reshape2::melt(dat.res, id.vars = 1, variable.name = "Models", 
+                          value.name = "Residuals")
+
+# ggplot(dat.res, aes(n, Residuals, col = Models)) +
+#   geom_point(shape = 1) +
+#   geom_hline(yintercept = 0, linetype = "dashed")
+
+ggplot(dat.res, aes(Residuals, col = Models)) +
+  stat_ecdf(geom = "step") +
+  geom_vline(xintercept = 0, linetype="dashed")
+```
+
+# References

@@ -13,6 +13,7 @@ graphicspath:
   - \graphicspath{{_figures/}}
 date: \today
 classoption:
+  - dvipsnames
   - svgnames
 fonttheme-opts:
   - onlymath
@@ -24,12 +25,12 @@ beamerconfig:
 handout: false
 section-titles: # hide sections
 colorlinks: yes
-# linkcolor: "crimson"
+urlcolor: "Navy"
 toc: true
 toc-title: Content
 toc-depth: 3
 toc-multicol: 2
-toc-at-begin-section: false
+toc-at-begin-section: true
 justifying: yes
 bibliography: bibliography.bib
 link-citations: true

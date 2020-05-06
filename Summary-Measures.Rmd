@@ -17,15 +17,19 @@ library(moments)
 <!-- https://www.logicmatters.net/resources/pdfs/MathFonts.pdf -->
 \begin{center}
 \textbf{Mean:} (\emph{not robust to outliers})
-\[
-\bar{x} = \frac{1}{n} \sum_{i=1}^n{x_i}
-\]
+```{box, type='equation', latex.options='[width=0.3\\linewidth]'}
+\[ \bar{x} = \frac{1}{n} \sum_{i=1}^n{x_i} \]
+```
 
 \textbf{Median:} (\emph{robust})
+```{box, type='equation', latex.options='[width=0.6\\linewidth]'}
 \[median=\begin{cases} x_{([n+1]/2)} &,n\;odd \\ \frac{x_{(n/2)}+x_{([n/2]+1)}}{2} &,n\; even \end{cases}\]
+```
 
 \textbf{Trimean:} (\emph{robust})
+```{box, type='equation', latex.options='[width=0.5\\linewidth]'}
 \[Trimean=\frac{q_{0.25} + 2q_{0.5} + q_{0.75}}{4}\]
+```
 \end{center}
 
 See [@Wilks2011].
@@ -59,13 +63,19 @@ cat(mean(x2), median(x2), trimean(x2))
 
 \begin{center}
 \textbf{Standard Deviation:} (\emph{not robust})
+```{box, type='equation', latex.options='[width=0.4\\linewidth]'}
 \[s=\sqrt{\frac{1}{n-1}\sum_{i=1}^n(x_i-\bar{x})^2}\]
+```
 
 \textbf{IQR:} (\emph{robust})
+```{box, type='equation', latex.options='[width=0.4\\linewidth]'}
 \[IQR =q_{0.75} - q_{0.25}\]
+```
 
 \textbf{Median Absolute Deviation:} (\emph{robust})
+```{box, type='equation', latex.options='[width=0.5\\linewidth]'}
 \[MAD=median\left| { x }_{ i }-{ q }_{ 0.5 } \right| \]
+```
 \end{center}
 
 ### Spread in R {.fragile}
@@ -83,10 +93,14 @@ cat(sd(x2), IQR(x2), mad(x2))
 
 \begin{center}
 \textbf{Skewness Coefficient:} (\emph{not robust})
+```{box, type='equation', latex.options='[width=0.4\\linewidth]'}
 \[\gamma =\frac{ \frac{1}{n} \sum_{i=1}^n{{(x_i - \bar{x})}^3}}{s^3}\]
+```
 
 \textbf{Yule-Kendall Index:} (\emph{robust})
+```{box, type='equation', latex.options='[width=0.4\\linewidth]'}
 \[\gamma_{yk} = \frac{q_{0.25} - 2q_{0.5} + q_{0.75}}{IQR} \]
+```
 \end{center}
 
 ### Symmetry in R {.fragile}

@@ -76,13 +76,13 @@ What are $q_{0.25}$ and $q_{0.75}$?
 (p1 <- p1 + mark_quantile(x, c(0.25, 0.75), "darkgreen"))
 ```
 
-\begin{block}{Quartiles}
-$q_{0.25}$ and $q_{0.75}$ are also called as Quartiles (Hinges). Usually these are called the lower (LQ) and upper quartiles (UQ), respectively.
-\end{block}
+```{box, type='info'}
+$q_{0.25}$ and $q_{0.75}$ are also called as **Quartiles** (Hinges). Usually these are called the lower (LQ) and upper quartiles (UQ), respectively.
+```
 
-\begin{block}{Percentiles}
-$q_{0.25}$ and $q_{0.75}$ can also be named as $25^{th}$ and $75^{th}$ Percentiles.
-\end{block}
+```{box, type='info'}
+$q_{0.25}$ and $q_{0.75}$ can also be named as $25^{th}$ and $75^{th}$ **Percentiles.**
+```
 
 \newpage
 
@@ -114,8 +114,9 @@ You can calculate quantiles by the `quantile` function.
 quantile(x, c(0, 0.1, 0.25, 0.5, 0.75, 0.9, 1))
 ```
 \
-\begin{alertblock}{Warning}
+
+```{box, type='alert'}
 Be aware that $q_{0}$ and $q_{1}$ are equal to minimum and maximum of the data, respectively. 
-\end{alertblock}
+```
 
 # References

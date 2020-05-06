@@ -6,6 +6,7 @@ keywords: "hypothesis testing, t-test, R"
 ---
 
 ```{r setup, include=FALSE}
+knitr_cache <- TRUE
 source("setup.R")
 n <- 20
 df <- n - 1
@@ -29,7 +30,7 @@ df <- n - 1
 1. **Significance ($\boldsymbol\alpha$) level:** The probability of rejecting the $H_0$ when the null hypothesis is true.
 2. **Confidence Level:** The probability of confidence interval contains the true population mean ($\mu$). \textcolor{violet}{It is not the probability of which the $\mu$ lies within interval.}
 
-```{block, type='ebox', latex.options=''}
+```{box, type='equation', latex.options='[width=\\linewidth/3]'}
 $\alpha = 0.05$
 
 $conf.level = 1- \alpha$
@@ -63,15 +64,7 @@ mx <- mean(x)
 cat(paste0("x <- c(",  paste(x, sep = "", collapse = ","), ")"))
 ```
 
-<!-- \begin{alertblock}{Question} -->
-<!-- Are they from a normal distribution which $\mu = 33.2$? -->
-<!-- \end{alertblock} -->
-
-<!-- :::: {.alertblock data-latex=""} -->
-<!-- Are they from a normal distribution which $\mu = 33.2$? -->
-<!-- :::: -->
-
-```{block, type='qbox'}
+```{box, type='question'}
 Are they from a normal distribution which $\mu = 33.2$?
 ```
 
@@ -95,7 +88,7 @@ p1 <- ggplot(data.frame(x), aes(x = x)) +
 print(p1)
 ```
 
-```{block, type='qbox'}
+```{box, type='question'}
 Don't we have any female older than 75?
 ```
 
@@ -124,7 +117,7 @@ t <- (mean(x) - mu)/se # What's happening here?
 cat(sprintf("SE = %.2f\tt = %.2f", se, t))
 ```
 
-```{block, type='qbox'}
+```{box, type='question'}
 1- Why $SE$ and $\sigma$ are different?
 
 2- What is the meaning of $t$?
@@ -152,7 +145,7 @@ p2 <- ggplot(dat.st, aes(x, y)) +
 print(p2)
 ```
 
-```{block, type='abox'}
+```{box, type='alert'}
 student-t distribution is defined only by degrees of freedom ($\mu = 0$ and $\sigma = 1$).
 ```
 
@@ -198,7 +191,9 @@ You can use $t$ value and $q_{\alpha}$ values to decide the test result.
 - If $-q_{\alpha} > t < q_{\alpha}$, **fail to reject** $H_0$.
 - If $-q_{\alpha} \le t \ge q_{\alpha}$, reject $H_0$.
 
-\addplot{0.5}{t_test-fig3_t_quantiles-1}
+```{r, echo = FALSE, out.width = '50%'}
+include_graphics('_figures/t_test-fig3_t_quantiles-1.pdf')
+```
 
 # Solution by Confidence Interval
 ## Calculate Confidence Interval
@@ -206,9 +201,9 @@ You can use $t$ value and $q_{\alpha}$ values to decide the test result.
 
 We know the quantiles of $\alevel$ for _student-t distribution_, so we can transform the quantiles back to original values for $\bar{x}$. Hence;
 
-\begin{center}
+```{box, type='equation', latex.options='[width=0.4\\linewidth]'}
 $CI = \bar{x} + (-q_{\alpha}, q_{\alpha}) \times SE$
-\end{center}
+```
 
 ```{r fig4_conf_int, echo = FALSE}
 (ci <- mean(x) + q * se)
@@ -219,18 +214,20 @@ print(p4)
 
 ### Deep look into Confidence Interval
 
-```{block, type='qbox'}
+```{box, type='question'}
 How did we calculate the confidence interval? What did we use?
 ```
 
-\begin{center}
+```{box, type='equation', latex.options='[width=0.7\\linewidth]'}
 $CI(\bar{x}, q_{\alpha}, SE)$, 
 $SE(s, n)$
 $q_{\alpha}(\alpha, df)$,
 $df(n)$
+```
 
+```{box, type='equation', latex.options='[width=0.2\\linewidth]'}
 $CI(\bar{x}, s, n, \alpha)$
-\end{center}
+```
 
 1. If $\alpha \rightarrow 1$, $q_{\alpha} \rightarrow 0$, $CI \rightarrow \bar{x}$ (We want to keep $\alpha$ low).
 2. If $n \rightarrow \infty$, $SE \rightarrow 0$, $CI \rightarrow \bar{x}$ (Law of Large Numbers).
@@ -245,7 +242,10 @@ You can use $\mu$ and confidence interval values to decide the test result.
 - If $c_1 > \mu < c_2$, **fail to reject** $H_0$.
 - If $c_1 \le \mu \ge c_2$, reject $H_0$.
 
-\addplot{0.5}{t_test-fig4_conf_int-1}
+```{r, echo = FALSE, out.width = '50%'}
+include_graphics('_figures/t_test-fig4_conf_int-1.pdf')
+```
+
 
 # Solution by $\pval$
 ## $\pval$
@@ -293,7 +293,7 @@ p6 <- p5 +
 print(p6)
 ```
 
-```{block, type='qbox'}
+```{box, type='question'}
 How to calculate $\pval$ for normal distribution?
 ```
 
@@ -305,9 +305,8 @@ You can use $\pval$ to decide the test result.
 - If $\pval > \alpha$, **fail to reject** $H_0$.
 - If $\pval \le \alpha$, reject $H_0$.
 
-```{block, echo = TRUE, type='ibox'}
-As we **failed to reject** $H_0$ by three methods, we can conclude that our observations ($\bar{x}=`r round(mean(x), 2)`$) come from a normal distribution which $\mu = `r mu`$ with $`r 100 * conf.level`\%$ confidence. The means are not significantly different. Also, confidence interval is $CI = (`r sprintf("%.2f", ci)`)$.
-
+```{box, type = 'info'}
+As we **failed to reject** $H_0$ by three methods, we can conclude that our observations ($\bar{x}=`r round(mean(x), 2)`$) come from a normal distribution which $\mu = `r mu`$ with $`r 100 * conf.level`\%$ confidence. The means are not significantly different. Also, confidence interval is $CI \cong [`r sprintf("%.2f", ci)`]$.
 ```
 
 # t-test function in R
@@ -315,11 +314,11 @@ As we **failed to reject** $H_0$ by three methods, we can conclude that our obse
 
 The steps above can be easly done by `t.test` funcion in R.
 
-\begin{center}
+```{box, type='equation', latex.options='[width=0.7\\linewidth]'}
 $`r sprintf("t = %.3f, df = %d, \\pval = %.3f", t, df, p_value)`$
 
 $CI = (`r sprintf("%.2f", ci)`)$
-\end{center}
+```
 
 ### _Equality_ for mean (two-tail) {.fragile}
 
@@ -351,7 +350,7 @@ t.test(x, alternative = "greater", mu = mu, conf.level = conf.level)
 ## One-Tail or Two Tail?
 ### Which one should I use?{.fragile}
 
-```{block, type='qbox'}
+```{box, type='question'}
 Which does it make sense? 
 
 * Equality
