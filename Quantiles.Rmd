@@ -45,11 +45,11 @@ What is $q_{0.5}$?
 ```{r, echo=FALSE, fig.width = 7, fig.height = 1.1, out.width = '90%'}
 mark_quantile <- function(x, probs, col = "red") {
   qs <- quantile(x, probs)
-  unlist(lapply(1:length(qs), function(i) {
+  unlist(lapply(seq_len(length(qs)), function(i) {
     q <- qs[i]; p <- probs[i]
     label <- TeX(paste0("$q_{", p, "}$"), output = "character")
     list(geom_vline(xintercept = q, col = col, linetype = "dashed"),
-      annotate("text", q, 0, label = label, col = col, vjust = -1.5, 
+      annotate("text", q, 0, label = label, col = col, vjust = -1.5,
                hjust = -0.1, parse = TRUE))
   }))
 }

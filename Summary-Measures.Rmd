@@ -52,7 +52,7 @@ cat(str)
 _Trimean_ calculation can be done by the `trimean` function.
 
 ```{r}
-trimean <- function(x) (2 * median(x) + sum(quantile(x, c(0.25, 0.75))))/4
+trimean <- function(x) (2 * median(x) + sum(quantile(x, c(0.25, 0.75)))) / 4
 cat(mean(x1), median(x1), trimean(x1))
 cat(mean(x2), median(x2), trimean(x2))
 ```
@@ -109,7 +109,7 @@ Calculate _skewness coefficient_ and _YK-index_  for $x_1$ and $x_2$.
 
 ```{r}
 library(moments)
-yk <- function(x) (sum(quantile(x, c(0.25, 0.75))) - 2 * median(x))/IQR(x)
+yk <- function(x) (sum(quantile(x, c(0.25, 0.75))) - 2 * median(x)) / IQR(x)
 cat(skewness(x1), yk(x1))
 cat(skewness(x2), yk(x2))
 ```

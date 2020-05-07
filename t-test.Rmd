@@ -75,12 +75,12 @@ labels <- c(sprintf("$\\bar{x} = %.1f$", mx),
             sprintf("$s = %.1f$", sd(x)),
             sprintf("$df = %d - 1 = %d$", n, df),
             "$\\mu$")
-p1 <- ggplot(data.frame(x), aes(x = x)) + 
+p1 <- ggplot(data.frame(x), aes(x = x)) +
   labs(x = "Age of females", y = "Density") +
   geom_density() + xlim(c(0, 100)) +
   geom_vline(xintercept = c(mean(x), mu), linetype = "dashed",
              col = c("black", "red")) +
-  annotate("text", x = c(60, 60, 58.7, mu + 1), 
+  annotate("text", x = c(60, 60, 58.7, mu + 1),
            y = c(0.024, 0.0215, 0.019, 0.005), hjust = 0,
            label = TeX(labels, output = "character"), parse = TRUE,
            col = c("black", "black", "black", "red")) +
@@ -100,7 +100,7 @@ First, you need to define $\alevel$;
 
 ```{r}
 alpha <- 0.05
-conf.level <- 1 - alpha
+conf_level <- 1 - alpha
 ```
 
 ## Calculate SE and t-value
@@ -110,8 +110,8 @@ Calculate _Standard Error_ and $\tval$;
 
 ```{r}
 n <- length(x)
-se <- sd(x)/sqrt(n)
-t <- (mean(x) - mu)/se # What's happening here?
+se <- sd(x) / sqrt(n)
+t <- (mean(x) - mu) / se # What's happening here?
 ```
 ```{r, echo = FALSE}
 cat(sprintf("SE = %.2f\tt = %.2f", se, t))
@@ -128,17 +128,17 @@ Null distribution is _student-t distribution_ with degrees of freedom $df = `r d
 
 ```{r fig2_tdist, echo=FALSE}
 y <- seq(-5, 5, 0.01)
-dat.st <- data.frame(x = y, y = dt(y, df))
+dat_st <- data.frame(x = y, y = dt(y, df))
 rx <- range(y)
-p2 <- ggplot(dat.st, aes(x, y)) + 
+p2 <- ggplot(dat_st, aes(x, y)) +
   labs(x = "Quantiles", y = "Density") +
   geom_line(col = "orange", size = 1) +
-  geom_vline(xintercept = c(0, t), linetype = "dashed", 
+  geom_vline(xintercept = c(0, t), linetype = "dashed",
              col = c("black", "violet")) +
-  annotate("text", x = 0.3, y = 0.05, 
-           label = TeX("$\\mu'$", output = "character"), 
+  annotate("text", x = 0.3, y = 0.05,
+           label = TeX("$\\mu'$", output = "character"),
            parse = TRUE) +
-    annotate("text", x = 1.7, y = 0.2, label = "null distribution", 
+    annotate("text", x = 1.7, y = 0.2, label = "null distribution",
            col = "orange", angle = -76) +
   annotate("text", x = t, y = 0.35, label = "t", hjust = 2,
            col = "violet")
@@ -156,7 +156,7 @@ student-t distribution is defined only by degrees of freedom ($\mu = 0$ and $\si
 We will use _student-t distribution_ to calculate quantiles of $\alevel$ at both tails.
 
 ```{r}
-q <- qt(c(alpha/2, 1 - alpha/2), df)
+q <- qt(c(alpha / 2, 1 - alpha / 2), df)
 ```
 
 Mark the quantiles of $\alevel$ on the plot.
@@ -166,10 +166,10 @@ $q_{\alpha} = `r round(abs(q[1]), 3)`$
 \end{center}
 
 ```{r fig3_t_quantiles, echo = FALSE, out.width = '40%'}
-qlabels <- TeX(c("$-q_{\\alpha}$", "$q_{\\alpha}$"), 
+qlabels <- TeX(c("$-q_{\\alpha}$", "$q_{\\alpha}$"),
                output = "character")
 qdata <- data.frame(x = q, y = 0, xend = q, yend = dt(q, df))
-p3 <- p2 + 
+p3 <- p2 +
   geom_segment(aes(x, y, xend = xend, yend = yend), qdata,
                col = "red", linetype = 3, inherit.aes = FALSE) +
   geom_text(aes(x = x, y = y), qdata, label = qlabels,
@@ -192,7 +192,7 @@ You can use $t$ value and $q_{\alpha}$ values to decide the test result.
 - If $-q_{\alpha} \le t \ge q_{\alpha}$, reject $H_0$.
 
 ```{r, echo = FALSE, out.width = '50%'}
-include_graphics('_figures/t_test-fig3_t_quantiles-1.pdf')
+include_graphics("_figures/t_test-fig3_t_quantiles-1.pdf")
 ```
 
 # Solution by Confidence Interval
@@ -207,7 +207,7 @@ $CI = \bar{x} + (-q_{\alpha}, q_{\alpha}) \times SE$
 
 ```{r fig4_conf_int, echo = FALSE}
 (ci <- mean(x) + q * se)
-p4 <- p1 + geom_rect(xmin = ci[1], xmax = ci[2], ymin = -Inf, 
+p4 <- p1 + geom_rect(xmin = ci[1], xmax = ci[2], ymin = -Inf,
                      ymax = Inf, alpha = 0.02, fill = "forestgreen")
 print(p4)
 ```
@@ -243,7 +243,7 @@ You can use $\mu$ and confidence interval values to decide the test result.
 - If $c_1 \le \mu \ge c_2$, reject $H_0$.
 
 ```{r, echo = FALSE, out.width = '50%'}
-include_graphics('_figures/t_test-fig4_conf_int-1.pdf')
+include_graphics("_figures/t_test-fig4_conf_int-1.pdf")
 ```
 
 
@@ -259,9 +259,9 @@ $t = `r round(t, 2)`$
 
 ```{r fig5_pval1, echo = FALSE}
 p_val <- pt(-abs(t), df)
-p5 <- p2 + geom_vline(xintercept = -t, linetype = "dashed", 
+p5 <- p2 + geom_vline(xintercept = -t, linetype = "dashed",
                       col = "blue") +
-  annotate("text", x = -t, y = 0.35, label = c("-t"), 
+  annotate("text", x = -t, y = 0.35, label = c("-t"),
            hjust = -0.5, col = c("blue")) +
   geom_ribbon(data = subset(dat.st, x >= rx[1] & x <= -abs(t)),
               aes(ymax = y), ymin = 0, fill = "red", colour = NA,
@@ -283,9 +283,9 @@ $\pval = p_1 + p_2 = `r sprintf("%.3f + %.3f = %.3f", p_val, p_val, p_value)`$
 
 ```{r fig6_pval2, echo = FALSE}
 p6 <- p5 +
-  annotate("segment", x = c(-3.5, 3.5), y = 0.1, 
+  annotate("segment", x = c(-3.5, 3.5), y = 0.1,
              xend = c(-1.5, 1.5), yend = 0.05,
-             arrow = arrow(angle = 20, length = unit(2, "mm"), 
+             arrow = arrow(angle = 20, length = unit(2, "mm"),
                            type = "closed"), col = "brown") +
     annotate("label", x = c(-3.5, 3.5), y = 0.1,
            label = TeX(sprintf("$p_%d = %.3f$", 1:2, p_val),
@@ -399,7 +399,7 @@ pvals <- sapply(1:try, function(i) {
   set.seed(i)
   t.test(rnorm(n))$p.value
 })
-per_of_type1 <- 100 * sum(pvals < 0.05)/try
+per_of_type1 <- 100 * sum(pvals < 0.05) / try
 ```
 
 ```{r fig7_pval_hist, echo = FALSE, fig.height = 1.5}
@@ -407,12 +407,12 @@ cat(sprintf("Percent of Type I Error : %1.f%%", per_of_type1))
 breaks <- seq(0, 1, 0.05)
 a <- c(1, rep(NA, length(breaks) - 2))
 per <- function(x) {
-  c(percent(x[1]/length(pvals)), rep("", length(x) - 1))
+  c(percent(x[1] / length(pvals)), rep("", length(x) - 1))
 }
 ggplot(data.frame(x = pvals), aes(x)) +
-  geom_histogram(breaks = breaks, col = "black", 
+  geom_histogram(breaks = breaks, col = "black",
                  fill = c("red", rep(NA, length(breaks) - 2)), alpha = 0.5) +
-  stat_bin(breaks = breaks, aes(label = per(..count..)), 
+  stat_bin(breaks = breaks, aes(label = per(..count..)),
            vjust = -0.5, geom = "text", na.rm = TRUE) +
   labs(x = "p-values")
 

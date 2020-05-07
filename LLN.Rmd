@@ -11,15 +11,15 @@ source("R_files/LLN.R")
 
 plot_dist <- function(dat, mu, sd) {
   mu_y_pos <- diff(range(dat$y))
-  ggplot(dat, aes_string("x", "y")) + 
+  ggplot(dat, aes_string("x", "y")) +
     labs(x = "Quantiles", y = "Density") +
     geom_line(col = "orange", size = 1) +
     geom_vline(xintercept = mu, linetype = "dashed", col = "black") +
     geom_segment(aes(x = mu, y = 0, xend = mu - sd, yend = 0),
                  arrow = arrow(length = unit(0.05, "inches"), ends = "both")) +
-    annotate("text", x = mu, y = mu_y_pos/10, hjust = -0.5,
+    annotate("text", x = mu, y = mu_y_pos / 10, hjust = -0.5,
              label = TeX("$\\mu$", output = "character"), parse = TRUE) +
-    annotate("text", x = mu - sd, y = mu_y_pos/30, hjust = -0.5,
+    annotate("text", x = mu - sd, y = mu_y_pos / 30, hjust = -0.5,
              label = TeX("$\\sigma$", output = "character"), parse = TRUE)
 }
 ```
@@ -68,7 +68,7 @@ You take samples from a _log-normally distributed_ population which $\mu \cong 2
 
 ```{r fig2, echo = FALSE, fig.width = 7, fig.height = 3, out.width = '90%'}
 mulog <- 0.5; sdlog <- 0.7
-mu <- exp(mulog + (sdlog^2)/2)
+mu <- exp(mulog + (sdlog^2) / 2)
 sdev <- sqrt(exp(sdlog^2 - 1) * exp(2 * mulog + sdlog^2))
 
 y <- qlnorm(c(0, 0.99), mulog, sdlog)
@@ -88,7 +88,7 @@ ggpubr::ggarrange(p1, p2, widths = c(0.7, 1))
 You take samples from a _gamma-distributed_ population which $\mu = 5$ and $\sigma \cong 1.6$.
 
 ```{r fig3, echo = FALSE, fig.width = 7, fig.height = 3, out.width = '90%'}
-shape <- 10; rate <- 2; scale <- 1/rate
+shape <- 10; rate <- 2; scale <- 1 / rate
 mu <- (shape * scale)
 sdev <- sqrt((shape * scale^2))
 
@@ -110,8 +110,8 @@ You take samples from a _weibull-distributed_ population which $\mu \cong 1.9$ a
 
 ```{r fig4, echo = FALSE, fig.width = 7, fig.height = 3, out.width = '90%'}
 shape <- 10; scale <- 2
-mu <- (scale * gamma(1 + 1/shape))
-sdev <- sqrt((scale^2 * (gamma(1 + 2/shape) - gamma(1 + 1/shape)^2)))
+mu <- (scale * gamma(1 + 1 / shape))
+sdev <- sqrt((scale^2 * (gamma(1 + 2 / shape) - gamma(1 + 1 / shape)^2)))
 
 y <- qweibull(c(0.001, 0.99999), shape, scale)
 y <- seq(y[1], y[2], 0.01)

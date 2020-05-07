@@ -12,21 +12,21 @@ n <- 10
 
 plot_dist <- function(dat, mu = NULL, sd = NULL) {
   mu_y_pos <- diff(range(dat$y))
-  p <- ggplot(dat, aes_string("x", "y")) + 
+  p <- ggplot(dat, aes_string("x", "y")) +
     geom_line(col = "orange", size = 1) +
     labs(x = "Quantiles", y = "Density")
 
   if (!is.null(mu)) {
     p <- p + geom_vline(xintercept = mu, linetype = "dashed", col = "black") +
-      annotate("text", x = mu, y = mu_y_pos/10, hjust = -0.5,
+      annotate("text", x = mu, y = mu_y_pos / 10, hjust = -0.5,
                label = TeX("$\\mu$", output = "character"), parse = TRUE)
   }
   if (!is.null(sd)) {
-    p <- p + 
+    p <- p +
       geom_segment(aes(x = mu, y = 0, xend = mu - sd, yend = 0),
-                   arrow = arrow(length = unit(0.05, "inches"), 
+                   arrow = arrow(length = unit(0.05, "inches"),
                                  ends = "both")) +
-      annotate("text", x = mu - sd, y = mu_y_pos/30, hjust = -0.5,
+      annotate("text", x = mu - sd, y = mu_y_pos / 30, hjust = -0.5,
                label = TeX("$\\sigma$", output = "character"), parse = TRUE)
   }
   return(p)
@@ -36,13 +36,13 @@ plot_dist <- function(dat, mu = NULL, sd = NULL) {
 
 # https://www.researchgate.net/post/How_does_one_generate_random_values_of_my_own_function_distribution
 ddist <- function(x) {
-  (dnorm(x, 40, 10) + dnorm(x, 60, 5) + dnorm(x, 90, 15) + 
-     dnorm(x, 150, 10))/4
+  (dnorm(x, 40, 10) + dnorm(x, 60, 5) + dnorm(x, 90, 15) +
+     dnorm(x, 150, 10)) / 4
 }
 
 pdist <- function(q) {
-    (pnorm(q, 40, 10) + pnorm(q, 60, 5) + pnorm(q, 90, 15) + 
-     pnorm(q, 150, 10))/4
+    (pnorm(q, 40, 10) + pnorm(q, 60, 5) + pnorm(q, 90, 15) +
+     pnorm(q, 150, 10)) / 4
 }
 
 qdist <- function(p) {
@@ -103,11 +103,11 @@ And take $n = `r n`$ sample from population $15$ times.
 x <- as.data.frame(sapply(1:15, function(i) {
   set.seed(i); rdist(n)
 }))
-colnames(x) <- 1:ncol(x)
+colnames(x) <- seq_len(ncol(x))
 m <- colMeans(x); pm <- pretty(m)
-m <- do.call(rbind, lapply(1:length(m), function(i) {
+m <- do.call(rbind, lapply(seq_len(length(m)), function(i) {
   x <- m[1:i]
-  data.frame(col = 1:length(x), Sample = i, x, y = 0)
+  data.frame(col = seq_len(length(x)), Sample = i, x, y = 0)
 }))
 m <- cbind(type = factor("Mean"), m)
 x <- reshape2::melt(x, id.vars = 0, variable.name = "Sample",
@@ -115,7 +115,7 @@ x <- reshape2::melt(x, id.vars = 0, variable.name = "Sample",
 x <- cbind(type = factor("Sample"), col = x$Sample, x, y = 0)
 x <- rbind(x, m)
 px <- pretty(x$x)
-segs1 <- data.frame(type = factor("Sample"), x = px, xend = px, 
+segs1 <- data.frame(type = factor("Sample"), x = px, xend = px,
                     y = -0.05, yend = 0.05)
 segs2 <- data.frame(type = factor("Mean"), x = pm, xend = pm,
                     y = -0.05, yend = 0.05)
@@ -144,25 +144,25 @@ k <- c(15, 100, 500, 1000)
 x <- as.data.frame(sapply(1:max(k), function(i) {
   set.seed(i); rdist(n)
 }))
-colnames(x) <- 1:ncol(x)
+colnames(x) <- seq_len(ncol(x))
 m <- colMeans(x); pm <- pretty(m)
-m <- data.frame(Sample = 1:length(m), x = m)
+m <- data.frame(Sample = seq_len(length(m)), x = m)
 m <- do.call(rbind, lapply(k, function(k) {
-  cbind(k = factor(k), m[m$Sample <= k,])
+  cbind(k = factor(k), m[m$Sample <= k, ])
 }))
 m <- data.frame(type = factor("Mean"), m)
 y <- reshape2::melt(x, id.vars = 0, variable.name = "Sample",
                     value.name = "x")
 y$Sample <- as.integer(y$Sample)
 y <- do.call(rbind, lapply(k, function(k) {
-  cbind(type = factor("Sample"), k = factor(k), y[y$Sample <= k,])
+  cbind(type = factor("Sample"), k = factor(k), y[y$Sample <= k, ])
 }))
 dat <- rbind(y, m)
 
 label_k <- paste0("k=", k); names(label_k) <- k
 ploth <- function(dat) {
   ggplot(dat, aes(x)) + labs(x = "", y = "Density") +
-  geom_histogram(aes(y=..density..), binwidth = 2, col = "black",
+  geom_histogram(aes(y = ..density..), binwidth = 2, col = "black",
                  fill = "transparent") +
   geom_density(alpha = .2, fill = "#FF6666") +
   facet_grid(k ~ type, scales = "free_y",
@@ -170,8 +170,8 @@ ploth <- function(dat) {
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank())
 }
-ploth(dat[as.integer(dat$k) <= 2,])
-ploth(dat[as.integer(dat$k) >= 3,])
+ploth(dat[as.integer(dat$k) <= 2, ])
+ploth(dat[as.integer(dat$k) >= 3, ])
 ```
 
 ### Effect of $n$ (Law of Large Numbers) {.fragile}
@@ -180,13 +180,16 @@ Take $n = 10,100$ sample from population $k = 100$ times.
 
 ```{r fig4, echo=FALSE, fig.width = 7, fig.height = 4, out.width = '90%'}
 n <- c(10, 100)
-x <- as.data.frame(sapply(1:100, function(i) { set.seed(i); rdist(max(n)) }))
-colnames(x) <- 1:ncol(x)
-xl <- list(x1 = x[1:min(n),], x2 = x)
+x <- as.data.frame(sapply(1:100, function(i) {
+  set.seed(i); rdist(max(n))
+}))
+colnames(x) <- seq_len(ncol(x))
+xl <- list(x1 = x[1:min(n), ], x2 = x)
 
 dat <- do.call(rbind, lapply(xl, function(x) {
   m <- colMeans(x)
-  m <- data.frame(type = factor("Mean"), n = nrow(x), Sample = 1:length(m), x = m)
+  m <- data.frame(type = factor("Mean"), n = nrow(x),
+                  Sample = seq_len(length(m)), x = m)
   y <- reshape2::melt(x, id.vars = 0, variable.name = "Sample",
                     value.name = "x")
   y$Sample <- as.integer(y$Sample)
@@ -196,25 +199,25 @@ dat <- do.call(rbind, lapply(xl, function(x) {
   dat
 }))
 rownames(dat) <- NULL
-dat <- dat[dat$x < 200,]
+dat <- dat[dat$x < 200, ]
 
 ci <- aggregate(x ~ type + n, dat, function(i) {
   quantile(i, c(0.025, 0.975))
 })
-ci <- cbind(ci[,1:2], ci[,3])
+ci <- cbind(ci[, 1:2], ci[, 3])
 colnames(ci)[3:4] <- c("c1", "c2")
 
 ci2 <- ci
-ci2[ci2$type == "Sample",3:4] <- ci2[ci2$type == "Mean",3:4]
+ci2[ci2$type == "Sample", 3:4] <- ci2[ci2$type == "Mean", 3:4]
 
 label_n <- paste0("n=", n); names(label_n) <- n
 ploth <- function(dat) {
   ggplot(dat, aes(x)) + labs(x = "", y = "Density") +
     geom_density(fill = "transparent") +
-    geom_segment(aes(x = c1, xend = c2), y = 0, yend = 0, data = ci, 
+    geom_segment(aes(x = c1, xend = c2), y = 0, yend = 0, data = ci,
                  col = "red", size = 1) +
-    geom_rect(aes(xmin = c1, xmax = c2), data = ci2, ymin = -Inf, 
-              ymax = Inf, alpha = 0.2, fill = "forestgreen", 
+    geom_rect(aes(xmin = c1, xmax = c2), data = ci2, ymin = -Inf,
+              ymax = Inf, alpha = 0.2, fill = "forestgreen",
               inherit.aes = FALSE) +
   facet_grid(n ~ type, scales = "free_y",
              labeller = labeller(n = label_n)) +
