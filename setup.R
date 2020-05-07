@@ -18,32 +18,32 @@ prefix <- tools::file_path_sans_ext(knitr::current_input())
 fig_path <- paste0("_figures/", prefix, "-")
 cache_path <- paste0("_cache/", prefix, "-")
 
-# options(knitr.table.format = "latex")
 options(xtable.comment = FALSE)
 options(width = 80)
 knitr::opts_chunk$set(
   echo = TRUE,
   cache = knitr_cache,
   cache.path = cache_path,
-  background = '#FEF8DF',
+  background = "#FEF8DF",
   fig.path = fig_path,
-  fig.align = 'center',
-  out.width = '50%')
+  fig.align = "center",
+  out.width = "50%")
 
 # a common hook for messages, warnings and errors
 optlist <- c("caption", "numbers", "basicstyle", "firstnumber", "style")
 hook <- function(x, options, ..., begin = "lstlisting") {
-  if (length(x) > 1) x <- paste(x, collapse = '\n')
+  if (length(x) > 1) x <- paste(x, collapse = "\n")
   opts <- options[optlist]
   opts <- append(list(...), opts)
   opts[sapply(opts, is.null)] <- NULL
   opts <- ifelse(length(opts) < 1, "",
-                 sprintf("[%s]",paste0(names(opts), "=", opts, collapse = ",")))
+                 sprintf("[%s]", paste0(names(opts), "=", opts,
+                                        collapse = ",")))
   knitr::raw_latex(
-    sprintf("\n\\begin{%s}%s\n%s\n\\end{%s}\n",begin, opts, x, begin))
+    sprintf("\n\\begin{%s}%s\n%s\n\\end{%s}\n", begin, opts, x, begin))
 }
 
-hook_lst_bf = function(x, options) {
+hook_lst_bf <- function(x, options) {
   hook(x, options, basicstyle = "{\\bfseries}")
 }
 
@@ -61,20 +61,21 @@ knitr::knit_engines$set(
 
 knitr::knit_hooks$set(source = function(x, options) {
   if (options$engine == "R") {
-    if (length(x) > 1) x <- paste(x, collapse = '\n')
+    if (length(x) > 1) x <- paste(x, collapse = "\n")
     return(hook(x, options, begin = "rcode"))
   }
   x
 },
 inline = function(x) {
-  if (is.numeric(x)) x = knitr:::round_digits(x)
+  if (is.numeric(x)) x <- knitr:::round_digits(x)
   paste(as.character(x), collapse = ", ")
 },
 evaluate.inline = function(code, envir = knitr::knit_global()) {
-  v = withVisible(eval(xfun::parse_only(code), envir = envir))
+  v <- withVisible(eval(xfun::parse_only(code), envir = envir))
   last_val <- v
   if (v$visible) {
-    last_val = knitr::knit_print(v$value, inline = TRUE, options = knitr::opts_chunk$get())
+    last_val <- knitr::knit_print(v$value, inline = TRUE,
+                                  options = knitr::opts_chunk$get())
   }
   return(last_val)
 },
@@ -85,12 +86,12 @@ chunk = function(x, options) {
   x
 },
 output = function(x, options) {
-  # print(names(options))
-  if (options$results == 'asis') return(x)
-  if ("caption" %in% names(options)) options$caption = "\\mbox{}"
-  # options$firstnumber = 1
+  if (options$results == "asis") return(x)
+  if ("caption" %in% names(options)) options$caption <- "\\mbox{}"
+  options$firstnumber <- 1
   x <- substr(x, 1, nchar(x) - 1)
-  if (substr(x, 1, 4) == paste(options$comment,"\n")) x <- substr(x, 5, nchar(x))
+  if (substr(x, 1, 4) == paste(options$comment, "\n"))
+    x <- substr(x, 5, nchar(x))
   hook(x, options, begin = "outp")
 },
 warning = hook_lst_bf,
@@ -102,15 +103,16 @@ knitr::set_header(highlight = "")
 
 include_graphics <-
   function(path, auto_pdf = getOption("knitr.graphics.auto_pdf", FALSE),
-           dpi = NULL, error = TRUE, latex.remove.dir = TRUE) {
-  path = knitr:::native_encode(path)
+           dpi = NULL, error = TRUE, latex_remove_dir = TRUE) {
+  path <- knitr:::native_encode(path)
   if (auto_pdf && knitr::is_latex_output()) {
-    path2 = xfun::with_ext(path, "pdf")
-    i = file.exists(path2)
-    if (latex.remove.dir) path2 <- basename(path2)
-    path[i] = path2[i]
+    path2 <- xfun::with_ext(path, "pdf")
+    i <- file.exists(path2)
+    if (latex_remove_dir) path2 <- basename(path2)
+    path[i] <- path2[i]
   }
-  if (error && length(p <- path[!knitr:::is_web_path(path) & !file.exists(path)]))
+  if (error && length(p <- path[!knitr:::is_web_path(path) &
+                                !file.exists(path)]))
     stop("Cannot find the file(s): ", paste0("\"", p, "\"",
                                              collapse = "; "))
   structure(path, class = c("knit_image_paths", "knit_asis"),

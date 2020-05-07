@@ -336,13 +336,14 @@ dat.res <- as.data.frame(cbind(n = 1:nrow(dat.res), dat.res))
 dat.res <- reshape2::melt(dat.res, id.vars = 1, variable.name = "Models", 
                           value.name = "Residuals")
 
-# ggplot(dat.res, aes(n, Residuals, col = Models)) +
-#   geom_point(shape = 1) +
-#   geom_hline(yintercept = 0, linetype = "dashed")
+ggplot(dat.res, aes(n, Residuals, col = Models)) +
+  geom_point(shape = 1) +
+  geom_hline(yintercept = 0, linetype = "dashed")
 
 ggplot(dat.res, aes(Residuals, col = Models)) +
   stat_ecdf(geom = "step") +
-  geom_vline(xintercept = 0, linetype="dashed")
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  geom_hline(yintercept = 0.5, linetype = "dashed")
 ```
 
 # References

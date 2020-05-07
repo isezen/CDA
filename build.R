@@ -4,10 +4,11 @@ library(rmarkdown)
 render_rmd <- function(input = NULL, output_format = NULL,
                        output_dir = "_pdf_files/", ..., cache = FALSE) {
   knitr_cache <<- cache
-  if (endsWith(output_dir, "/")) output_dir <- substr(output_dir, 1, nchar(output_dir) - 1)
+  if (endsWith(output_dir, "/"))
+    output_dir <- substr(output_dir, 1, nchar(output_dir) - 1)
   if (!cache) unlink("_cache", recursive = TRUE)
   dir.create(output_dir, showWarnings = FALSE)
-  files <- if (is.null(input)) list.files(pattern = '\\.Rmd$') else input
+  files <- if (is.null(input)) list.files(pattern = "\\.Rmd$") else input
   for (file in files) {
     r <- render(file, output_format, output_dir = output_dir, ...,
                 quiet = TRUE)
@@ -16,7 +17,7 @@ render_rmd <- function(input = NULL, output_format = NULL,
   files_to_copy <- c("images", "_figures", "template", "_output.yml",
                      "_beamer.yml", "bibliography.bib")
   invisible(lapply(c("md", "tex"), function(p) {
-    file <- list.files(output_dir, pattern = sprintf('\\.%s$', p),
+    file <- list.files(output_dir, pattern = sprintf("\\.%s$", p),
                        full.names = TRUE)
     td <- sprintf(paste0(output_dir, "_%s_files/"), p)
     if (length(file) > 0) {
@@ -38,4 +39,3 @@ buildbeamer <- function(input = NULL, ...) {
 buildpdf <- function(input = NULL, ...) {
   render_rmd(input, "pdf_document", "_pdf", ...)
 }
-
